@@ -29,3 +29,27 @@ def main_menu():
         elif choice == "Exit":
             print("Exiting Rate Management App")
             break
+
+
+def add_rate():
+    print("Add rate selected")
+
+
+def view_rates():
+    print("View rates selected")
+
+
+def edit_rates():
+    print("Edit rates selected")
+
+
+def delete_rate():
+    print("Delete rate selected")
+
+
+def export_quote():
+    print("Export quote selected")
+
+
+if __name__ == "__main__":
+    main_menu()
