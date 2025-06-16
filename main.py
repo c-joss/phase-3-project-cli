@@ -1,4 +1,5 @@
 import questionary
+from customer import Rate
 
 
 def main_menu():
