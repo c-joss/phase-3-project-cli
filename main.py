@@ -3,7 +3,7 @@ from customer import Rate
 
 
 def main_menu():
-    while true:
+    while True:
         choice = questionary.select(
             "What would you like to do?",
             choices=[
