@@ -1,5 +1,6 @@
 import questionary
 from customer import Rate
+from utils import load_data, save_data
 
 
 def main_menu():
