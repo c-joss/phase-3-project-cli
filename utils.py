@@ -1,0 +1,32 @@
+import json
+from customer import Customer, Rate
+
+DATA_FILE = "data/rates.json"
+
+
+def load_data():
+    try:
+        with open(DATA_FILE, "r") as f:
+            data = json.load(f)
+            customers = []
+            for c in data:
+                customer = Customer(c["name"])
+                for r in c["rates"]:
+                    rate = Rate(
+                        r["load_port"],
+                        r["destination_port"],
+                        r.get("container_type", ""),
+                        r["freight_usd"],
+                        r["othc_aud"],
+                        r["doc_aud"],
+                        r["cmr_aud"],
+                        r["ams_usd"],
+                        r["lss_usd"],
+                        r["dthc"],
+                        r["free_time"],
+                    )
+                    customer.add_rate(rate)
+                customers.append(customer)
+            return customers
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
