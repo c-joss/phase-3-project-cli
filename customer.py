@@ -46,3 +46,18 @@ class Rate:
             f"DOC: {self.doc_aud} AUD | CMR: {self.cmr_aud} AUD | AMS: {self.ams_usd} USD | "
             f"LSS: {self.lss_usd} USD | DTHC: {self.dthc} | Free Time: {self.free_time}"
         )
+
+
+class Customer:
+    def __init__(self, name):
+        self.name = name
+        self.rates = []
+
+    def add_rate(self, rate):
+        self.rates.append(rate)
+
+    def to_dict(self):
+        return {"name": self.name, "rates": [rate.to_dict() for rate in self.rates]}
+
+    def __str__(self):
+        return f"Customer: {self.name} | {len(self.rates)} rates"
