@@ -1,5 +1,5 @@
 import questionary
-from customer import Rate
+from customer import Rate, Customer
 from utils import load_data, save_data
 
 

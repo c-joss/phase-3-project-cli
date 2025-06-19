@@ -31,6 +31,7 @@ def load_data():
     except (FileNotFoundError, json.JSONDecodeError):
         return []
 
-    def save_data(customers):
-        with open(DATA_FILE, "w") as f:
-            json.dump([c.to_dict() for c in customers], f, indent=4)
+
+def save_data(customers):
+    with open(DATA_FILE, "w") as f:
+        json.dump([c.to_dict() for c in customers], f, indent=4)
