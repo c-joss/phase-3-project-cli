@@ -3,6 +3,20 @@ from customer import Customer, Rate
 
 DATA_FILE = "data/rates.json"
 
+VALID_LOAD_PORTS = ["Melbourne", "Sydney", "Brisbane", "AU"]
+VALID_DEST_PORTS = [
+    "Shanghai",
+    "Ningbo",
+    "Shekou",
+    "Xingang",
+    "Qingdao",
+    "Zhangjiagang",
+    "Kaohsiung",
+    "Taichung",
+    "Keelung",
+]
+VALID_CONTAINERS = ["20GP", "40GP", "40HC", "20RE", "40REHC", "20OT", "40OT"]
+
 
 def load_data():
     try:

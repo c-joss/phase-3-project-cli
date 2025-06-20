@@ -1,6 +1,12 @@
 import questionary
 from customer import Rate, Customer
-from utils import load_data, save_data
+from utils import (
+    load_data,
+    save_data,
+    VALID_LOAD_PORTS,
+    VALID_DEST_PORTS,
+    VALID_CONTAINERS,
+)
 
 
 def main_menu():
@@ -42,9 +48,19 @@ def add_rate():
         existing_customer = Customer(customer_name)
         customers.append(existing_customer)
 
-    load_port = questionary.text("Enter Load Port:").ask()
-    destination_port = questionary.text("Enter Destination Port:").ask()
-    container_type = questionary.text("Enter Container Type:").ask()
+    load_port = questionary.autocomplete(
+        "Enter Load Port:",
+        choices=VALID_LOAD_PORTS,
+        validate=lambda text: text in VALID_LOAD_PORTS or "Please select a valid port",
+    ).ask()
+    destination_port = questionary.autocomplete(
+        "Enter Destination Port:",
+        choices=VALID_DEST_PORTS,
+        validate=lambda text: text in VALID_DEST_PORTS or "Please select a valid port",
+    ).ask()
+    container_type = questionary.select(
+        "Select Container Type:", choices=VALID_CONTAINERS
+    ).ask()
     freight_usd = questionary.text("Freight (USD):").ask()
     othc_aud = questionary.text("OTHC (AUD):").ask()
     doc_aud = questionary.text("DOC (AUD):").ask()
