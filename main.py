@@ -1,5 +1,6 @@
 import questionary
 from customer import Rate, Customer
+from tabulate import tabulate
 from utils import (
     load_data,
     save_data,
@@ -90,7 +91,48 @@ def add_rate():
 
 
 def view_rates():
-    print("View rates selected")
+    customers = load_data()
+
+    if not customers:
+        print("\n No rates found. Please add rates first")
+        return
+
+    for customer in customers:
+        print(f"\nCustomer: {customer.name}")
+
+        table_data = []
+        for rate in customer.rates:
+            table_data.append(
+                [
+                    rate.load_port,
+                    rate.destination_port,
+                    rate.container_type,
+                    rate.freight_usd,
+                    rate.othc_aud,
+                    rate.doc_aud,
+                    rate.cmr_aud,
+                    rate.ams_usd,
+                    rate.lss_usd,
+                    rate.dthc,
+                    rate.free_time,
+                ]
+            )
+
+        headers = [
+            "POL",
+            "POD",
+            "Container",
+            "Freight USD",
+            "OTHC AUD",
+            "DOC AUD",
+            "CMR AUD",
+            "AMS USD",
+            "LSS USD",
+            "DTHC",
+            "Free Time",
+        ]
+
+        print(tabulate(table_data, headers=headers, tablefmt="grid"))
 
 
 def edit_rates():

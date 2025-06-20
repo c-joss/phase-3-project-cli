@@ -29,6 +29,7 @@ class Rate:
         return {
             "load_port": self.load_port,
             "destination_port": self.destination_port,
+            "container_type": self.container_type,
             "freight_usd": self.freight_usd,
             "othc_aud": self.othc_aud,
             "doc_aud": self.doc_aud,
