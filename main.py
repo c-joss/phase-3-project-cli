@@ -1,6 +1,9 @@
 import questionary
 from customer import Rate, Customer
 from tabulate import tabulate
+from openpyxl import Workbook
+from openpyxl.styles import Font
+import re
 from utils import (
     load_data,
     save_data,
@@ -218,7 +221,71 @@ def delete_rate():
 
 
 def export_quote():
-    print("Export quote selected")
+    customers = load_data()
+
+    if not customers:
+        print("\n No rates found.")
+        return
+
+    customer_choices = [c.name for c in customers]
+    customer_name = questionary.select(
+        "Select Customer:", choices=customer_choices
+    ).ask()
+
+    customer = next(c for c in customers if c.name == customer_name)
+
+    if not customer.rates:
+        print("\n Customer has no rates.")
+        return
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Quote"
+
+    headers = [
+        "POL",
+        "POD",
+        "Container",
+        "Freight USD",
+        "OTHC AUD",
+        "DOC AUD",
+        "CMR AUD",
+        "AMS USD",
+        "LSS USD",
+        "DTHC",
+        "Free Time",
+    ]
+    ws.append(headers)
+
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+
+    for rate in customer.rates:
+        row = [
+            rate.load_port,
+            rate.destination_port,
+            rate.container_type,
+            rate.freight_usd,
+            rate.othc_aud,
+            rate.doc_aud,
+            rate.cmr_aud,
+            rate.ams_usd,
+            rate.lss_usd,
+            rate.dthc,
+            rate.free_time,
+        ]
+        ws.append(row)
+
+    for column_cells in ws.columns:
+        length = max(len(str(cell.value)) for cell in column_cells)
+        col_letter = column_cells[0].column_letter
+        ws.column_dimensions[col_letter].width = length + 2
+
+    safe_name = re.sub(r"\W+", "_", customer_name)
+    filename = f"quote_{safe_name}.xlsx"
+    wb.save(filename)
+
+    print(f"\n Quote exported to {filename}\n")
 
 
 if __name__ == "__main__":
