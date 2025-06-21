@@ -243,6 +243,11 @@ def export_quote():
     ws = wb.active
     ws.title = "Quote"
 
+    ws["A1"] = f"Customer: {customer.name}"
+    ws["A1"].font = Font(bold=True, size=14)
+
+    ws.append([])
+
     headers = [
         "POL",
         "POD",
@@ -258,7 +263,7 @@ def export_quote():
     ]
     ws.append(headers)
 
-    for cell in ws[1]:
+    for cell in ws[3]:
         cell.font = Font(bold=True)
 
     for rate in customer.rates:
@@ -283,7 +288,7 @@ def export_quote():
         ws.column_dimensions[col_letter].width = length + 2
 
     safe_name = re.sub(r"\W+", "_", customer_name)
-    filename = os.path.join(EXPORT_DIR, f"quote_{safe_name}.xlsx")
+    filename = f"{EXPORT_DIR}/Quote_{safe_name}.xlsx"
     wb.save(filename)
 
     print(f"\n Quote exported to {filename}\n")
