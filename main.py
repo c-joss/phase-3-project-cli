@@ -89,6 +89,8 @@ def add_rate():
 
     save_data(customers)
 
+    print("\n Rate added.\n")
+
 
 def view_rates():
     customers = load_data()
@@ -136,7 +138,48 @@ def view_rates():
 
 
 def edit_rates():
-    print("Edit rates selected")
+    customers = load_data()
+
+    if not customers:
+        print("\n No rates found.")
+        return
+
+    customer_choices = [c.name for c in customers]
+    customer_name = questionary.autocomplete(
+        "Select Customer:",
+        choices=customer_choices,
+        validate=lambda text: text in customer_choices
+        or "Please select a valid customer",
+    ).ask()
+
+    customer = next(c for c in customers if c.name == customer_name)
+
+    if not customer.rates:
+        print("\n Customer has no rates.")
+        return
+
+    rate_choices = [
+        f"{idx + 1}: {r.load_port} to {r.destination_port} ({r.container_type})"
+        for idx, r in enumerate(customer.rates)
+    ]
+    selected = questionary.select("Select Rate to Edit:", choices=rate_choices).ask()
+    rate_idx = int(selected.split(":")[0]) - 1
+    rate = customer.rates[rate_idx]
+
+    rate.freight_usd = questionary.text(
+        "Freight (USD):", default=str(rate.freight_usd)
+    ).ask()
+    rate.othc_aud = questionary.text("OTHC (AUD):", default=str(rate.othc_aud)).ask()
+    rate.doc_aud = questionary.text("DOC (AUD):", default=str(rate.doc_aud)).ask()
+    rate.cmr_aud = questionary.text("CMR (AUD):", default=str(rate.cmr_aud)).ask()
+    rate.ams_usd = questionary.text("AMS (USD):", default=str(rate.ams_usd)).ask()
+    rate.lss_usd = questionary.text("LSS (USD):", default=str(rate.lss_usd)).ask()
+    rate.dthc = questionary.text("DTHC:", default=str(rate.dthc)).ask()
+    rate.free_time = questionary.text("Free Time:", default=str(rate.free_time)).ask()
+
+    save_data(customers)
+
+    print("\n Rate updated.\n")
 
 
 def delete_rate():
