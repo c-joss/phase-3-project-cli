@@ -303,7 +303,7 @@ def import_quote():
     EXPORT_DIR = "exports"
     customers = load_data()
     file_path = questionary.text(
-        "Enter path to Excel file to import., default=f{EXPORT_DIR}/"
+        "Enter path to Excel file to import:", default=f"{EXPORT_DIR}/"
     ).ask()
 
     try:
@@ -321,6 +321,9 @@ def import_quote():
 
     customer = next(c for c in customers if c.name == customer_name)
 
+    import_count = 0
+    skip_count = 0
+
     for row in ws.iter_rows(min_row=4, values_only=True):
         (
             load_port,
@@ -336,7 +339,7 @@ def import_quote():
             free_time,
         ) = row
 
-        rate = Rate(
+        new_rate = Rate(
             load_port,
             destination_port,
             container_type,
@@ -350,9 +353,57 @@ def import_quote():
             free_time,
         )
 
-        customer.add_rate(rate)
+        existing_rate = next(
+            (
+                r
+                for r in customer.rates
+                if r.load_port == load_port
+                and r.destination_port == destination_port
+                and r.container_type == container_type
+            ),
+            None,
+        )
+
+        if existing_rate:
+            if existing_rate.to_dict() == new_rate.to_dict():
+                print(
+                    f"Rate for {load_port} to {destination_port} ({container_type}) already exists - no changes were made."
+                )
+                skip_count += 1
+                continue
+            else:
+                print(
+                    f"\n Rate exists for {load_port} to {destination_port} ({container_type})"
+                )
+                print("Existing:".ljust(12), existing_rate)
+                print("New:".ljust(12), new_rate)
+                confirm = questionary.confirm("Replace existing rate?").ask()
+                if confirm:
+                    customer.rates = [
+                        r
+                        for r in customer.rates
+                        if not (
+                            r.load_port == load_port
+                            and r.destination_port == destination_port
+                            and r.container_type == container_type
+                        )
+                    ]
+                    customer.add_rate(new_rate)
+                    print("Rate replaced.")
+                    import_count += 1
+                else:
+                    print("Rate skipped")
+                    skip_count += 1
+        else:
+            customer.add_rate(new_rate)
+            print(
+                f"Imported new rate: {load_port} to {destination_port} ({container_type})"
+            )
+            import_count += 1
 
     save_data(customers)
+
+    print(f"\n Import complete: {import_count} new/replaced, {skip_count} skipped.\n")
 
 
 if __name__ == "__main__":
