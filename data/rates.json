@@ -3,32 +3,6 @@
         "name": "Davis Wool",
         "rates": [
             {
-                "load_port": "Melbourne",
-                "destination_port": "Shanghai",
-                "container_type": "20GP",
-                "freight_usd": "100",
-                "othc_aud": "200",
-                "doc_aud": "300",
-                "cmr_aud": "400",
-                "ams_usd": "500",
-                "lss_usd": "600",
-                "dthc": "700",
-                "free_time": "14 Days"
-            },
-            {
-                "load_port": "Sydney",
-                "destination_port": "Shanghai",
-                "container_type": "40GP",
-                "freight_usd": "400",
-                "othc_aud": "300",
-                "doc_aud": "400",
-                "cmr_aud": "500",
-                "ams_usd": "600",
-                "lss_usd": "700",
-                "dthc": "Collect",
-                "free_time": "14 Days"
-            },
-            {
                 "load_port": "Brisbane",
                 "destination_port": "Shekou",
                 "container_type": "40HC",
