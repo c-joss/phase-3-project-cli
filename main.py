@@ -221,6 +221,7 @@ def delete_rate():
 
 
 def export_quote():
+    EXPORT_DIR = "exports"
     customers = load_data()
 
     if not customers:
@@ -282,7 +283,7 @@ def export_quote():
         ws.column_dimensions[col_letter].width = length + 2
 
     safe_name = re.sub(r"\W+", "_", customer_name)
-    filename = f"quote_{safe_name}.xlsx"
+    filename = os.path.join(EXPORT_DIR, f"quote_{safe_name}.xlsx")
     wb.save(filename)
 
     print(f"\n Quote exported to {filename}\n")
