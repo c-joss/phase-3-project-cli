@@ -1,7 +1,7 @@
 import questionary
 from customer import Rate, Customer
 from tabulate import tabulate
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
 from datetime import datetime
 import re
@@ -23,7 +23,8 @@ def main_menu():
                 "View Rates",
                 "Edit Rates",
                 "Delete Rate",
-                "Export Quote",
+                "Export Quote to Excel",
+                "Import Quote from Excel",
                 "Exit",
             ],
         ).ask()
@@ -36,8 +37,10 @@ def main_menu():
             edit_rates()
         elif choice == "Delete Rate":
             delete_rate()
-        elif choice == "Export Quote":
+        elif choice == "Export Quote to Excel":
             export_quote()
+        elif choice == "Import Quote from Excel":
+            import_quote()
         elif choice == "Exit":
             print("Exiting Rate Management App")
             break
@@ -294,6 +297,62 @@ def export_quote():
     wb.save(filename)
 
     print(f"\n Quote exported to {filename}\n")
+
+
+def import_quote():
+    EXPORT_DIR = "exports"
+    customers = load_data()
+    file_path = questionary.text(
+        "Enter path to Excel file to import., default=f{EXPORT_DIR}/"
+    ).ask()
+
+    try:
+        wb = load_workbook(filename=file_path)
+    except Exception as e:
+        print(f"\n Could not open file: {e}\n")
+        return
+
+    ws = wb.active
+
+    customer_choices = [c.name for c in customers]
+    customer_name = questionary.select(
+        "Select Customer to import rates to", choices=customer_choices
+    ).ask()
+
+    customer = next(c for c in customers if c.name == customer_name)
+
+    for row in ws.iter_rows(min_row=4, values_only=True):
+        (
+            load_port,
+            destination_port,
+            container_type,
+            freight_usd,
+            othc_aud,
+            doc_aud,
+            cmr_aud,
+            ams_usd,
+            lss_usd,
+            dthc,
+            free_time,
+        ) = row
+
+        rate = Rate(
+            load_port,
+            destination_port,
+            container_type,
+            freight_usd,
+            othc_aud,
+            doc_aud,
+            cmr_aud,
+            ams_usd,
+            lss_usd,
+            dthc,
+            free_time,
+        )
+
+        customer.add_rate(rate)
+
+    save_data(customers)
 
 
 if __name__ == "__main__":
