@@ -3,6 +3,7 @@ from customer import Rate, Customer
 from tabulate import tabulate
 from openpyxl import Workbook
 from openpyxl.styles import Font
+from datetime import datetime
 import re
 from utils import (
     load_data,
@@ -288,7 +289,8 @@ def export_quote():
         ws.column_dimensions[col_letter].width = length + 2
 
     safe_name = re.sub(r"\W+", "_", customer_name)
-    filename = f"{EXPORT_DIR}/Quote_{safe_name}.xlsx"
+    current_date = datetime.now().strftime("%d_%m_%Y")
+    filename = f"{EXPORT_DIR}/Quote_{safe_name}_{current_date}.xlsx"
     wb.save(filename)
 
     print(f"\n Quote exported to {filename}\n")
