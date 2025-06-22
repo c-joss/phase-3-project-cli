@@ -62,3 +62,20 @@ class Customer:
 
     def __str__(self):
         return f"Customer: {self.name} | {len(self.rates)} rates"
+
+
+class TariffRate(Rate):
+    def __init__(self, load_port, destination_port, container_type, tariff_values):
+        super().__init__(
+            load_port,
+            destination_port,
+            container_type,
+            tariff_values["freight_usd"],
+            tariff_values["othc_aud"],
+            tariff_values["doc_aud"],
+            tariff_values["cmr_aud"],
+            tariff_values["ams_usd"],
+            tariff_values["lss_usd"],
+            tariff_values["dthc"],
+            tariff_values["free_time"],
+        )

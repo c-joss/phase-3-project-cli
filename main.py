@@ -1,5 +1,5 @@
 import questionary
-from customer import Rate, Customer
+from customer import Rate, Customer, TariffRate
 from tabulate import tabulate
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
@@ -27,6 +27,7 @@ def main_menu():
                 "Export Quote to Excel",
                 "Export Customers by Destination Port",
                 "Import Quote from Excel",
+                "Manage Tariff Rates",
                 "Exit",
             ],
         ).ask()
@@ -45,6 +46,8 @@ def main_menu():
             export_by_destination()
         elif choice == "Import Quote from Excel":
             import_quote()
+        elif choice == "Manage Tariff Rates":
+            manage_tariff_rate()
         elif choice == "Exit":
             print("Exiting Rate Manager App")
             break
@@ -523,6 +526,61 @@ def import_quote():
     save_data(customers)
 
     print(f"\n Import complete: {import_count} new/replaced, {skip_count} skipped.\n")
+
+
+def manage_tariff_rate():
+    tariff_manager = TariffManager()
+
+    action = questionary.select(
+        "What would you like to do?",
+        choices=[
+            "View Tariff Rates",
+            "Add Tariff Rate",
+            "Delete Tariff Rate",
+            "Back to Main Menu",
+        ],
+    ).ask()
+
+    if action == "View Tariffs":
+        tariff_manager.view_tariffs()
+    elif action == "Add Tariff":
+        load_port = questionary.select("Load Port", choices=VALID_LOAD_PORTS).ask()
+        destination_port = questionary.select(
+            "Destination Port:", choices=VALID_DEST_PORTS
+        ).ask()
+        container_type = questionary.select(
+            "Container Type:", choices=VALID_CONTAINERS
+        ).ask()
+
+        freight_usd = questionary.text("Freight (USD):").ask()
+        othc_aud = questionary.text("OTHC (AUD):").ask()
+        doc_aud = questionary.text("DOC (AUD):").ask()
+        cmr_aud = questionary.text("CMR (AUD):").ask()
+        ams_usd = questionary.text("AMS (USD):").ask()
+        lss_usd = questionary.text("LSS (USD):").ask()
+        dthc = questionary.select("Select DTHC Terms:", choices=VALID_DTHC).ask()
+        free_time = questionary.text("Free Time:").ask()
+
+        tariff_manager.add_tariff(
+            load_port,
+            destination_port,
+            container_type,
+            {
+                "freight_usd": freight_usd,
+                "othc_aud": othc_aud,
+                "doc_aud": doc_aud,
+                "cmr_aud": cmr_aud,
+                "ams_usd": ams_usd,
+                "lss_usd": lss_usd,
+                "dthc": dthc,
+                "free_time": free_time,
+            },
+        )
+        print("\nTariff Added.\n")
+    elif action == "Delete Tariff":
+        tariff_manager.delete_tariff()
+    else:
+        return
 
 
 if __name__ == "__main__":
