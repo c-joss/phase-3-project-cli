@@ -119,5 +119,41 @@
                 "free_time": "14 Days"
             }
         ]
+    },
+    {
+        "name": "BOMBAY STEEL",
+        "rates": [
+            {
+                "load_port": "Melbourne",
+                "destination_port": "Taichung",
+                "container_type": "40HC",
+                "freight_usd": "800",
+                "othc_aud": "400",
+                "doc_aud": "500",
+                "cmr_aud": "400",
+                "ams_usd": "300",
+                "lss_usd": "20",
+                "dthc": "Collect",
+                "free_time": "14 Days"
+            }
+        ]
+    },
+    {
+        "name": "BLAH",
+        "rates": [
+            {
+                "load_port": "Sydney",
+                "destination_port": "Shanghai",
+                "container_type": "20GP",
+                "freight_usd": "400",
+                "othc_aud": "300",
+                "doc_aud": "300",
+                "cmr_aud": "500",
+                "ams_usd": "400",
+                "lss_usd": "200",
+                "dthc": "Collect",
+                "free_time": "14 days"
+            }
+        ]
     }
 ]

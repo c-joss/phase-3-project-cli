@@ -204,3 +204,66 @@ def export_rates_to_excel(rates, filename_prefix):
     wb.save(filename)
 
     print(f"\n Exported to {len(rates)} rates to {filename}\n")
+
+
+def rate_values_prompt(defaults=None):
+    defaults = defaults or {}
+
+    load_port = questionary.autocomplete(
+        "Enter Load Port:",
+        choices=VALID_LOAD_PORTS,
+        default=defaults.get("load_port", ""),
+        validate=lambda text: text in VALID_LOAD_PORTS or "Please select a valid port",
+    ).ask()
+
+    destination_port = questionary.autocomplete(
+        "Enter Destination Port:",
+        choices=VALID_DEST_PORTS,
+        default=defaults.get("destination_port", ""),
+        validate=lambda text: text in VALID_DEST_PORTS or "Please select a valid port",
+    ).ask()
+
+    container_type_default = defaults.get("container_type", "")
+    container_type = questionary.select(
+        "Select Container Type:",
+        choices=VALID_CONTAINERS,
+        default=(
+            container_type_default
+            if container_type_default in VALID_CONTAINERS
+            else None
+        ),
+    ).ask()
+
+    freight_usd = questionary.text(
+        "Freight (USD):", default=defaults.get("freight_usd", "")
+    ).ask()
+    othc_aud = questionary.text(
+        "OTHC (AUD):", default=defaults.get("othc_aud", "")
+    ).ask()
+    doc_aud = questionary.text("DOC (AUD):", default=defaults.get("doc_aud", "")).ask()
+    cmr_aud = questionary.text("CMR (AUD):", default=defaults.get("cmr_aud", "")).ask()
+    ams_usd = questionary.text("AMS (USD):", default=defaults.get("ams_usd", "")).ask()
+    lss_usd = questionary.text("LSS (USD):", default=defaults.get("lss_usd", "")).ask()
+    dthc_default = defaults.get("dthc", "")
+    dthc = questionary.select(
+        "Select DTHC Terms:",
+        choices=VALID_DTHC,
+        default=dthc_default if dthc_default in VALID_DTHC else None,
+    ).ask()
+    free_time = questionary.text(
+        "Free Time:", default=defaults.get("free_time", "")
+    ).ask()
+
+    return {
+        "load_port": load_port,
+        "destination_port": destination_port,
+        "container_type": container_type,
+        "freight_usd": freight_usd,
+        "othc_aud": othc_aud,
+        "doc_aud": doc_aud,
+        "cmr_aud": cmr_aud,
+        "ams_usd": ams_usd,
+        "lss_usd": lss_usd,
+        "dthc": dthc,
+        "free_time": free_time,
+    }

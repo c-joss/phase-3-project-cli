@@ -9,6 +9,7 @@ from utils import (
     TariffManager,
     load_data,
     save_data,
+    rate_values_prompt,
     VALID_LOAD_PORTS,
     VALID_DEST_PORTS,
     VALID_CONTAINERS,
@@ -64,40 +65,20 @@ def add_rate():
         existing_customer = Customer(customer_name)
         customers.append(existing_customer)
 
-    load_port = questionary.autocomplete(
-        "Enter Load Port:",
-        choices=VALID_LOAD_PORTS,
-        validate=lambda text: text in VALID_LOAD_PORTS or "Please select a valid port",
-    ).ask()
-    destination_port = questionary.autocomplete(
-        "Enter Destination Port:",
-        choices=VALID_DEST_PORTS,
-        validate=lambda text: text in VALID_DEST_PORTS or "Please select a valid port",
-    ).ask()
-    container_type = questionary.select(
-        "Select Container Type:", choices=VALID_CONTAINERS
-    ).ask()
-    freight_usd = questionary.text("Freight (USD):").ask()
-    othc_aud = questionary.text("OTHC (AUD):").ask()
-    doc_aud = questionary.text("DOC (AUD):").ask()
-    cmr_aud = questionary.text("CMR (AUD):").ask()
-    ams_usd = questionary.text("AMS (USD):").ask()
-    lss_usd = questionary.text("LSS (USD):").ask()
-    dthc = questionary.select("Select DTHC Terms:", choices=VALID_DTHC).ask()
-    free_time = questionary.text("Free Time:").ask()
+    values = rate_values_prompt()
 
     rate = Rate(
-        load_port,
-        destination_port,
-        container_type,
-        freight_usd,
-        othc_aud,
-        doc_aud,
-        cmr_aud,
-        ams_usd,
-        lss_usd,
-        dthc,
-        free_time,
+        values["load_port"],
+        values["destination_port"],
+        values["container_type"],
+        values["freight_usd"],
+        values["othc_aud"],
+        values["doc_aud"],
+        values["cmr_aud"],
+        values["ams_usd"],
+        values["lss_usd"],
+        values["dthc"],
+        values["free_time"],
     )
 
     existing_customer.add_rate(rate)
@@ -181,16 +162,19 @@ def edit_rates():
     rate_idx = int(selected.split(":")[0]) - 1
     rate = customer.rates[rate_idx]
 
-    rate.freight_usd = questionary.text(
-        "Freight (USD):", default=str(rate.freight_usd)
-    ).ask()
-    rate.othc_aud = questionary.text("OTHC (AUD):", default=str(rate.othc_aud)).ask()
-    rate.doc_aud = questionary.text("DOC (AUD):", default=str(rate.doc_aud)).ask()
-    rate.cmr_aud = questionary.text("CMR (AUD):", default=str(rate.cmr_aud)).ask()
-    rate.ams_usd = questionary.text("AMS (USD):", default=str(rate.ams_usd)).ask()
-    rate.lss_usd = questionary.text("LSS (USD):", default=str(rate.lss_usd)).ask()
-    rate.dthc = questionary.text("DTHC:", default=str(rate.dthc)).ask()
-    rate.free_time = questionary.text("Free Time:", default=str(rate.free_time)).ask()
+    values = rate_values_prompt()
+
+    rate.load_port = values["load_port"]
+    rate.destination_port = values["destination_port"]
+    rate.container_type = values["container_type"]
+    rate.freight_usd = values["freight_usd"]
+    rate.othc_aud = values["othc_aud"]
+    rate.doc_aud = values["doc_aud"]
+    rate.cmr_aud = values["cmr_aud"]
+    rate.ams_usd = values["ams_usd"]
+    rate.lss_usd = values["lss_usd"]
+    rate.dthc = values["dthc"]
+    rate.free_time = values["free_time"]
 
     save_data(customers)
 
@@ -545,37 +529,23 @@ def manage_tariff_rate():
 
     if action == "View Tariff Rates":
         tariff_manager.view_tariffs()
-    elif action == "Add Tariff Rate":
-        load_port = questionary.select("Load Port", choices=VALID_LOAD_PORTS).ask()
-        destination_port = questionary.select(
-            "Destination Port:", choices=VALID_DEST_PORTS
-        ).ask()
-        container_type = questionary.select(
-            "Container Type:", choices=VALID_CONTAINERS
-        ).ask()
 
-        freight_usd = questionary.text("Freight (USD):").ask()
-        othc_aud = questionary.text("OTHC (AUD):").ask()
-        doc_aud = questionary.text("DOC (AUD):").ask()
-        cmr_aud = questionary.text("CMR (AUD):").ask()
-        ams_usd = questionary.text("AMS (USD):").ask()
-        lss_usd = questionary.text("LSS (USD):").ask()
-        dthc = questionary.select("Select DTHC Terms:", choices=VALID_DTHC).ask()
-        free_time = questionary.text("Free Time:").ask()
+    elif action == "Add Tariff Rate":
+        values = rate_values_prompt()
 
         tariff_manager.add_tariffs(
-            load_port,
-            destination_port,
-            container_type,
+            values["load_port"],
+            values["destination_port"],
+            values["container_type"],
             {
-                "freight_usd": freight_usd,
-                "othc_aud": othc_aud,
-                "doc_aud": doc_aud,
-                "cmr_aud": cmr_aud,
-                "ams_usd": ams_usd,
-                "lss_usd": lss_usd,
-                "dthc": dthc,
-                "free_time": free_time,
+                "freight_usd": values["freight_usd"],
+                "othc_aud": values["othc_aud"],
+                "doc_aud": values["doc_aud"],
+                "cmr_aud": values["cmr_aud"],
+                "ams_usd": values["ams_usd"],
+                "lss_usd": values["lss_usd"],
+                "dthc": values["dthc"],
+                "free_time": values["free_time"],
             },
         )
         print("\nTariff Added.\n")

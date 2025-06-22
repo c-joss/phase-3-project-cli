@@ -11,5 +11,18 @@
         "lss_usd": "60",
         "dthc": "Collect",
         "free_time": "14 Days"
+    },
+    {
+        "load_port": "Sydney",
+        "destination_port": "Shekou",
+        "container_type": "40HC",
+        "freight_usd": "400",
+        "othc_aud": "300",
+        "doc_aud": "400",
+        "cmr_aud": "500",
+        "ams_usd": "300",
+        "lss_usd": "20",
+        "dthc": "Collect",
+        "free_time": "14 Days"
     }
 ]
