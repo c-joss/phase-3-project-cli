@@ -14,11 +14,96 @@
                 "lss_usd": "35",
                 "dthc": "Collect",
                 "free_time": "14 Days"
+            },
+            {
+                "load_port": "Melbourne",
+                "destination_port": "Shekou",
+                "container_type": "40HC",
+                "freight_usd": "400",
+                "othc_aud": "300",
+                "doc_aud": "200",
+                "cmr_aud": "100",
+                "ams_usd": "25",
+                "lss_usd": "35",
+                "dthc": "Collect",
+                "free_time": "14 Days"
             }
         ]
     },
     {
         "name": "LILY WOOL",
+        "rates": [
+            {
+                "load_port": "Melbourne",
+                "destination_port": "Shekou",
+                "container_type": "40HC",
+                "freight_usd": 700,
+                "othc_aud": "300",
+                "doc_aud": "200",
+                "cmr_aud": "100",
+                "ams_usd": "25",
+                "lss_usd": "35",
+                "dthc": "Collect",
+                "free_time": "14 Days"
+            }
+        ]
+    },
+    {
+        "name": "LUNA WOOL",
+        "rates": [
+            {
+                "load_port": "Melbourne",
+                "destination_port": "Shekou",
+                "container_type": "40HC",
+                "freight_usd": "400",
+                "othc_aud": "300",
+                "doc_aud": "200",
+                "cmr_aud": "100",
+                "ams_usd": "25",
+                "lss_usd": "35",
+                "dthc": "Collect",
+                "free_time": "14 Days"
+            }
+        ]
+    },
+    {
+        "name": "RYOBI WOOL",
+        "rates": [
+            {
+                "load_port": "Melbourne",
+                "destination_port": "Shekou",
+                "container_type": "40HC",
+                "freight_usd": "400",
+                "othc_aud": "300",
+                "doc_aud": "200",
+                "cmr_aud": "100",
+                "ams_usd": "25",
+                "lss_usd": "35",
+                "dthc": "Collect",
+                "free_time": "14 Days"
+            }
+        ]
+    },
+    {
+        "name": "GHIBLI WOOL",
+        "rates": [
+            {
+                "load_port": "Melbourne",
+                "destination_port": "Shekou",
+                "container_type": "40HC",
+                "freight_usd": "400",
+                "othc_aud": "300",
+                "doc_aud": "200",
+                "cmr_aud": "100",
+                "ams_usd": "25",
+                "lss_usd": "35",
+                "dthc": "Collect",
+                "free_time": "14 Days"
+            }
+        ]
+    },
+    {
+        "name": "CHUPA WOOL",
         "rates": [
             {
                 "load_port": "Melbourne",

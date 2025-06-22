@@ -25,7 +25,7 @@ def main_menu():
                 "Edit Rates",
                 "Delete Rate",
                 "Export Quote to Excel",
-                "Export Customer by Destination Port",
+                "Export Customers by Destination Port",
                 "Import Quote from Excel",
                 "Exit",
             ],
@@ -41,7 +41,7 @@ def main_menu():
             delete_rate()
         elif choice == "Export Quote to Excel":
             export_quote()
-        elif choice == "Export Customer by Destination Port":
+        elif choice == "Export Customers by Destination Port":
             export_by_destination()
         elif choice == "Import Quote from Excel":
             import_quote()
@@ -400,30 +400,63 @@ def import_quote():
 
     ws = wb.active
 
-    customer_choices = [c.name for c in customers]
-    customer_name = questionary.select(
-        "Select Customer to import rates to", choices=customer_choices
-    ).ask()
+    first_header = ws["A3"].value
+    is_multi_customer = (first_header or "").lower() == "customer"
 
-    customer = next(c for c in customers if c.name == customer_name)
+    if is_multi_customer:
+        print("\n Import by destination port")
+    else:
+        customer_choices = [c.name for c in customers]
+        customer_name = questionary.select(
+            "Select Customer to import rates to", choices=customer_choices
+        ).ask()
+
+        customer = next(c for c in customers if c.name == customer_name)
 
     import_count = 0
     skip_count = 0
 
     for row in ws.iter_rows(min_row=4, values_only=True):
-        (
-            load_port,
-            destination_port,
-            container_type,
-            freight_usd,
-            othc_aud,
-            doc_aud,
-            cmr_aud,
-            ams_usd,
-            lss_usd,
-            dthc,
-            free_time,
-        ) = row
+        if is_multi_customer:
+            (
+                customer_name,
+                load_port,
+                destination_port,
+                container_type,
+                freight_usd,
+                othc_aud,
+                doc_aud,
+                cmr_aud,
+                ams_usd,
+                lss_usd,
+                dthc,
+                free_time,
+            ) = row
+
+            customer_name_upper = customer_name.upper()
+
+            existing_customer = next(
+                (c for c in customers if c.name == customer_name_upper), None
+            )
+            if not existing_customer:
+                existing_customer = Customer(customer_name_upper)
+                customers.append(existing_customer)
+            target_customer = existing_customer
+        else:
+            (
+                load_port,
+                destination_port,
+                container_type,
+                freight_usd,
+                othc_aud,
+                doc_aud,
+                cmr_aud,
+                ams_usd,
+                lss_usd,
+                dthc,
+                free_time,
+            ) = row
+            target_customer = customer
 
         new_rate = Rate(
             load_port,
@@ -442,7 +475,7 @@ def import_quote():
         existing_rate = next(
             (
                 r
-                for r in customer.rates
+                for r in target_customer.rates
                 if r.load_port == load_port
                 and r.destination_port == destination_port
                 and r.container_type == container_type
@@ -465,23 +498,23 @@ def import_quote():
                 print("New:".ljust(12), new_rate)
                 confirm = questionary.confirm("Replace existing rate?").ask()
                 if confirm:
-                    customer.rates = [
+                    target_customer.rates = [
                         r
-                        for r in customer.rates
+                        for r in target_customer.rates
                         if not (
                             r.load_port == load_port
                             and r.destination_port == destination_port
                             and r.container_type == container_type
                         )
                     ]
-                    customer.add_rate(new_rate)
+                    target_customer.add_rate(new_rate)
                     print("Rate replaced.")
                     import_count += 1
                 else:
                     print("Rate skipped")
                     skip_count += 1
         else:
-            customer.add_rate(new_rate)
+            target_customer.add_rate(new_rate)
             print(
                 f"Imported new rate: {load_port} to {destination_port} ({container_type})"
             )
