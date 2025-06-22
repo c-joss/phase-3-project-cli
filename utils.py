@@ -1,5 +1,6 @@
 import json
 import questionary
+from tabulate import tabulate
 from customer import Customer, Rate, TariffRate, Manager
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
@@ -126,8 +127,39 @@ class TariffManager(Manager):
             print("\n No Tariff rate found.")
             return
 
-        for r in self.items:
-            print(str(r))
+        table = [
+            [
+                r.load_port,
+                r.destination_port,
+                r.container_type,
+                r.freight_usd,
+                r.othc_aud,
+                r.doc_aud,
+                r.cmr_aud,
+                r.ams_usd,
+                r.lss_usd,
+                r.dthc,
+                r.free_time,
+            ]
+            for r in self.items
+        ]
+
+        headers = [
+            "Load Port",
+            "Destination",
+            "Container",
+            "Freight USD",
+            "OTHC AUD",
+            "DOC AUD",
+            "CMR AUD",
+            "AMS USD",
+            "LSS USD",
+            "DTHC",
+            "Free Time",
+        ]
+
+        print("\n Tariff Rates:\n")
+        print(tabulate(table, headers=headers, tablefmt="grid"))
 
     def delete_tariff(self):
         if not self.items:
