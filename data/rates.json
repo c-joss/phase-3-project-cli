@@ -1,49 +1,18 @@
 [
     {
-        "name": "DAVIS WOOL",
+        "name": "JOHNNY STEEL",
         "rates": [
             {
-                "load_port": "Melbourne",
-                "destination_port": "Shanghai",
-                "container_type": "20RE",
-                "freight_usd": "500",
+                "load_port": "MELBOURNE",
+                "destination_port": "SHANGHAI",
+                "container_type": "20GP",
+                "freight_usd": "800",
                 "othc_aud": "400",
-                "doc_aud": "120",
-                "cmr_aud": "20",
-                "ams_usd": "30",
-                "lss_usd": "35",
-                "dthc": "Collect",
-                "free_time": "14 Days"
-            },
-            {
-                "load_port": "Melbourne",
-                "destination_port": "Shekou",
-                "container_type": "40HC",
-                "freight_usd": "400",
-                "othc_aud": "300",
                 "doc_aud": "200",
-                "cmr_aud": "100",
-                "ams_usd": "25",
-                "lss_usd": "35",
-                "dthc": "Collect",
-                "free_time": "14 Days"
-            }
-        ]
-    },
-    {
-        "name": "LILY WOOL",
-        "rates": [
-            {
-                "load_port": "Melbourne",
-                "destination_port": "Shekou",
-                "container_type": "40HC",
-                "freight_usd": 700,
-                "othc_aud": "300",
-                "doc_aud": "200",
-                "cmr_aud": "100",
-                "ams_usd": "25",
-                "lss_usd": "35",
-                "dthc": "Collect",
+                "cmr_aud": "300",
+                "ams_usd": "35",
+                "lss_usd": "30",
+                "dthc": "COLLECT",
                 "free_time": "14 Days"
             }
         ]
@@ -52,52 +21,156 @@
         "name": "LUNA WOOL",
         "rates": [
             {
-                "load_port": "Melbourne",
-                "destination_port": "Shekou",
-                "container_type": "40HC",
-                "freight_usd": "400",
-                "othc_aud": "300",
+                "load_port": "MELBOURNE",
+                "destination_port": "SHANGHAI",
+                "container_type": "20GP",
+                "freight_usd": "800",
+                "othc_aud": "400",
                 "doc_aud": "200",
-                "cmr_aud": "100",
-                "ams_usd": "25",
-                "lss_usd": "35",
-                "dthc": "Collect",
+                "cmr_aud": "300",
+                "ams_usd": "35",
+                "lss_usd": "30",
+                "dthc": "COLLECT",
+                "free_time": "14 Days"
+            },
+            {
+                "load_port": "MELBOURNE",
+                "destination_port": "SHANGHAI",
+                "container_type": "40HC",
+                "freight_usd": 1600,
+                "othc_aud": "400",
+                "doc_aud": "200",
+                "cmr_aud": "300",
+                "ams_usd": "35",
+                "lss_usd": "30",
+                "dthc": "COLLECT",
+                "free_time": "14 Days"
+            },
+            {
+                "load_port": "MELBOURNE",
+                "destination_port": "SHANGHAI",
+                "container_type": "40GP",
+                "freight_usd": 1000,
+                "othc_aud": "400",
+                "doc_aud": "200",
+                "cmr_aud": "300",
+                "ams_usd": "35",
+                "lss_usd": "30",
+                "dthc": "COLLECT",
+                "free_time": "14 Days"
+            },
+            {
+                "load_port": "MELBOURNE",
+                "destination_port": "NINGBO",
+                "container_type": "20GP",
+                "freight_usd": "800",
+                "othc_aud": "400",
+                "doc_aud": "200",
+                "cmr_aud": "300",
+                "ams_usd": "35",
+                "lss_usd": "30",
+                "dthc": "COLLECT",
+                "free_time": "14 Days"
+            },
+            {
+                "load_port": "MELBOURNE",
+                "destination_port": "NINGBO",
+                "container_type": "40GP",
+                "freight_usd": 1000,
+                "othc_aud": "400",
+                "doc_aud": "200",
+                "cmr_aud": "300",
+                "ams_usd": "35",
+                "lss_usd": "30",
+                "dthc": "COLLECT",
                 "free_time": "14 Days"
             }
         ]
     },
     {
-        "name": "RYOBI WOOL",
+        "name": "LILY WOOL",
         "rates": [
             {
-                "load_port": "Melbourne",
-                "destination_port": "Shekou",
-                "container_type": "40HC",
-                "freight_usd": "400",
-                "othc_aud": "300",
+                "load_port": "MELBOURNE",
+                "destination_port": "SHANGHAI",
+                "container_type": "20GP",
+                "freight_usd": "800",
+                "othc_aud": "400",
                 "doc_aud": "200",
-                "cmr_aud": "100",
-                "ams_usd": "25",
-                "lss_usd": "35",
-                "dthc": "Collect",
+                "cmr_aud": "300",
+                "ams_usd": "35",
+                "lss_usd": "30",
+                "dthc": "COLLECT",
+                "free_time": "14 Days"
+            },
+            {
+                "load_port": "MELBOURNE",
+                "destination_port": "SHANGHAI",
+                "container_type": "40GP",
+                "freight_usd": 1000,
+                "othc_aud": "400",
+                "doc_aud": "200",
+                "cmr_aud": "300",
+                "ams_usd": "35",
+                "lss_usd": "30",
+                "dthc": "COLLECT",
+                "free_time": "14 Days"
+            },
+            {
+                "load_port": "MELBOURNE",
+                "destination_port": "NINGBO",
+                "container_type": "20GP",
+                "freight_usd": "800",
+                "othc_aud": "400",
+                "doc_aud": "200",
+                "cmr_aud": "300",
+                "ams_usd": "35",
+                "lss_usd": "30",
+                "dthc": "COLLECT",
+                "free_time": "14 Days"
+            },
+            {
+                "load_port": "MELBOURNE",
+                "destination_port": "NINGBO",
+                "container_type": "40GP",
+                "freight_usd": 1000,
+                "othc_aud": "400",
+                "doc_aud": "200",
+                "cmr_aud": "300",
+                "ams_usd": "35",
+                "lss_usd": "30",
+                "dthc": "COLLECT",
                 "free_time": "14 Days"
             }
         ]
     },
     {
-        "name": "GHIBLI WOOL",
+        "name": "PANDA STEEL",
         "rates": [
             {
-                "load_port": "Melbourne",
-                "destination_port": "Shekou",
-                "container_type": "40HC",
-                "freight_usd": "400",
-                "othc_aud": "300",
+                "load_port": "MELBOURNE",
+                "destination_port": "SHANGHAI",
+                "container_type": "20GP",
+                "freight_usd": "800",
+                "othc_aud": "400",
                 "doc_aud": "200",
-                "cmr_aud": "100",
-                "ams_usd": "25",
-                "lss_usd": "35",
-                "dthc": "Collect",
+                "cmr_aud": "300",
+                "ams_usd": "35",
+                "lss_usd": "30",
+                "dthc": "COLLECT",
+                "free_time": "14 Days"
+            },
+            {
+                "load_port": "MELBOURNE",
+                "destination_port": "SHANGHAI",
+                "container_type": "40HC",
+                "freight_usd": 1600,
+                "othc_aud": "400",
+                "doc_aud": "200",
+                "cmr_aud": "300",
+                "ams_usd": "35",
+                "lss_usd": "30",
+                "dthc": "COLLECT",
                 "free_time": "14 Days"
             }
         ]
@@ -106,53 +179,30 @@
         "name": "CHUPA WOOL",
         "rates": [
             {
-                "load_port": "Melbourne",
-                "destination_port": "Shekou",
-                "container_type": "40HC",
-                "freight_usd": "400",
-                "othc_aud": "300",
-                "doc_aud": "200",
-                "cmr_aud": "100",
-                "ams_usd": "25",
-                "lss_usd": "35",
-                "dthc": "Collect",
-                "free_time": "14 Days"
-            }
-        ]
-    },
-    {
-        "name": "BOMBAY STEEL",
-        "rates": [
-            {
-                "load_port": "Melbourne",
-                "destination_port": "Taichung",
-                "container_type": "40HC",
+                "load_port": "MELBOURNE",
+                "destination_port": "NINGBO",
+                "container_type": "20GP",
                 "freight_usd": "800",
                 "othc_aud": "400",
-                "doc_aud": "500",
-                "cmr_aud": "400",
-                "ams_usd": "300",
-                "lss_usd": "20",
-                "dthc": "Collect",
+                "doc_aud": "200",
+                "cmr_aud": "300",
+                "ams_usd": "35",
+                "lss_usd": "30",
+                "dthc": "COLLECT",
                 "free_time": "14 Days"
-            }
-        ]
-    },
-    {
-        "name": "BLAH",
-        "rates": [
+            },
             {
-                "load_port": "Sydney",
-                "destination_port": "Shanghai",
-                "container_type": "20GP",
-                "freight_usd": "400",
-                "othc_aud": "300",
-                "doc_aud": "300",
-                "cmr_aud": "500",
-                "ams_usd": "400",
-                "lss_usd": "200",
-                "dthc": "Collect",
-                "free_time": "14 days"
+                "load_port": "MELBOURNE",
+                "destination_port": "NINGBO",
+                "container_type": "40GP",
+                "freight_usd": 1000,
+                "othc_aud": "400",
+                "doc_aud": "200",
+                "cmr_aud": "300",
+                "ams_usd": "35",
+                "lss_usd": "30",
+                "dthc": "COLLECT",
+                "free_time": "14 Days"
             }
         ]
     }

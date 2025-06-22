@@ -1,0 +1,19 @@
+{
+    "VALID_LOAD_PORTS": [
+        "MELBOURNE",
+        "SYDNEY",
+        "BRISBANE",
+        "AU"
+    ],
+    "VALID_DEST_PORTS": [
+        "TAICHUNG",
+        "SHANGHAI",
+        "NINGBO",
+        "SHEKOU",
+        "KAOHSIUNG",
+        "KEELUNG",
+        "TOKYO"
+    ],
+    "VALID_CONTAINERS": ["20GP", "40GP", "40HC", "20RE", "40REHC"],
+    "VALID_DTHC": ["COLLECT", "PREPAID"]
+}

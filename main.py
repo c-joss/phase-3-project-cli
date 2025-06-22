@@ -11,10 +11,6 @@ from utils import (
     save_data,
     rate_values_prompt,
     EXPORT_DIR,
-    VALID_LOAD_PORTS,
-    VALID_DEST_PORTS,
-    VALID_CONTAINERS,
-    VALID_DTHC,
     EXPORT_HEADERS,
     EXPORT_HEADERS_WITH_CUSTOMER,
 )
@@ -68,7 +64,9 @@ def add_rate():
         existing_customer = Customer(customer_name)
         customers.append(existing_customer)
 
-    values = rate_values_prompt()
+    tariff_manager = TariffManager()
+    load_ports, dest_ports, containers, dthc_values = tariff_manager.get_valid_ports()
+    values = rate_values_prompt(load_ports, dest_ports, containers, dthc_values)
 
     rate = Rate(
         values["load_port"],
@@ -165,7 +163,28 @@ def edit_rates():
     rate_idx = int(selected.split(":")[0]) - 1
     rate = customer.rates[rate_idx]
 
-    values = rate_values_prompt()
+    tariff_manager = TariffManager()
+    load_ports, dest_ports, containers, dthc_values = tariff_manager.get_valid_ports()
+
+    values = rate_values_prompt(
+        load_ports,
+        dest_ports,
+        containers,
+        dthc_values,
+        defaults={
+            "load_port": rate.load_port,
+            "destination_port": rate.destination_port,
+            "container_type": rate.container_type,
+            "freight_usd": rate.freight_usd,
+            "othc_aud": rate.othc_aud,
+            "doc_aud": rate.doc_aud,
+            "cmr_aud": rate.cmr_aud,
+            "ams_usd": rate.ams_usd,
+            "lss_usd": rate.lss_usd,
+            "dthc": rate.dthc,
+            "free_time": rate.free_time,
+        },
+    )
 
     rate.load_port = values["load_port"]
     rate.destination_port = values["destination_port"]
@@ -483,6 +502,7 @@ def manage_tariff_rate():
                 "Add Tariff Rate",
                 "Delete Tariff Rate",
                 "Export Tariff Rates to Excel",
+                "Import Tariff Rates from Excel",
                 "Back to Main Menu",
             ],
         ).ask()
@@ -491,7 +511,10 @@ def manage_tariff_rate():
             tariff_manager.view_tariffs()
 
         elif action == "Add Tariff Rate":
-            values = rate_values_prompt()
+            load_ports, dest_ports, containers, dthc_values = (
+                tariff_manager.get_valid_ports()
+            )
+            values = rate_values_prompt(load_ports, dest_ports, containers, dthc_values)
 
             tariff_manager.add_tariffs(
                 values["load_port"],
@@ -513,6 +536,8 @@ def manage_tariff_rate():
             tariff_manager.delete_tariff()
         elif action == "Export Tariff Rates to Excel":
             tariff_manager.export_tariff_rates()
+        elif action == "Import Tariff Rates from Excel":
+            tariff_manager.import_tariff_rates()
         elif action == "Back to Main Menu":
             break
 
