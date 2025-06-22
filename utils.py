@@ -16,6 +16,7 @@ VALID_DEST_PORTS = [
     "Keelung",
 ]
 VALID_CONTAINERS = ["20GP", "40GP", "40HC", "20RE", "40REHC", "20OT", "40OT"]
+VALID_DTHC = ["Collect", "Prepaid"]
 
 
 def load_data():

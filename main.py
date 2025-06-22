@@ -11,6 +11,7 @@ from utils import (
     VALID_LOAD_PORTS,
     VALID_DEST_PORTS,
     VALID_CONTAINERS,
+    VALID_DTHC,
 )
 
 
@@ -42,7 +43,7 @@ def main_menu():
         elif choice == "Import Quote from Excel":
             import_quote()
         elif choice == "Exit":
-            print("Exiting Rate Management App")
+            print("Exiting Rate Manager App")
             break
 
 
@@ -75,7 +76,7 @@ def add_rate():
     cmr_aud = questionary.text("CMR (AUD):").ask()
     ams_usd = questionary.text("AMS (USD):").ask()
     lss_usd = questionary.text("LSS (USD):").ask()
-    dthc = questionary.text("DTHC:").ask()
+    dthc = questionary.select("Select DTHC Terms:", choices=VALID_DTHC).ask()
     free_time = questionary.text("Free Time:").ask()
 
     rate = Rate(
