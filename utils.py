@@ -114,12 +114,7 @@ class TariffManager(Manager):
             return
 
         for r in self.items:
-            print(
-                f"{r.load_port} to {r.destination_port} ({r.container_type}) | "
-                f"Freight: {r.freight_usd} USD | OTHC: {r.othc_aud} AUD | "
-                f"DOC: {r.doc_aud} AUD | CMR: {r.cmr_aud} AUD | AMS: {r.ams_usd} USD | "
-                f"LSS: {r.lss_usd} USD | DTHC: {r.dthc} | Free Time: {r.free_time}"
-            )
+            print(str(r))
 
     def delete_tariff(self):
         if not self.items:
