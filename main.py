@@ -208,7 +208,7 @@ def delete_rate():
 
     rate_idx = int(selected.split(":")[0]) - 1
 
-    confirm = questionary.confirm("Confirm to delete customer?").ask()
+    confirm = questionary.confirm("Confirm to delete rate?").ask()
 
     if confirm:
         deleted = customer.rates.pop(rate_idx)
@@ -477,45 +477,46 @@ def import_quote():
 def manage_tariff_rate():
     tariff_manager = TariffManager()
 
-    action = questionary.select(
-        "What would you like to do?",
-        choices=[
-            "View Tariff Rates",
-            "Add Tariff Rate",
-            "Delete Tariff Rate",
-            "Export Tariff Rates to Excel",
-            "Back to Main Menu",
-        ],
-    ).ask()
+    while True:
+        action = questionary.select(
+            "What would you like to do?",
+            choices=[
+                "View Tariff Rates",
+                "Add Tariff Rate",
+                "Delete Tariff Rate",
+                "Export Tariff Rates to Excel",
+                "Back to Main Menu",
+            ],
+        ).ask()
 
-    if action == "View Tariff Rates":
-        tariff_manager.view_tariffs()
+        if action == "View Tariff Rates":
+            tariff_manager.view_tariffs()
 
-    elif action == "Add Tariff Rate":
-        values = rate_values_prompt()
+        elif action == "Add Tariff Rate":
+            values = rate_values_prompt()
 
-        tariff_manager.add_tariffs(
-            values["load_port"],
-            values["destination_port"],
-            values["container_type"],
-            {
-                "freight_usd": values["freight_usd"],
-                "othc_aud": values["othc_aud"],
-                "doc_aud": values["doc_aud"],
-                "cmr_aud": values["cmr_aud"],
-                "ams_usd": values["ams_usd"],
-                "lss_usd": values["lss_usd"],
-                "dthc": values["dthc"],
-                "free_time": values["free_time"],
-            },
-        )
-        print("\nTariff Added.\n")
-    elif action == "Delete Tariff Rate":
-        tariff_manager.delete_tariff()
-    elif action == "Export Tariff Rates to Excel":
-        tariff_manager.export_tariff_rates()
-    else:
-        return
+            tariff_manager.add_tariffs(
+                values["load_port"],
+                values["destination_port"],
+                values["container_type"],
+                {
+                    "freight_usd": values["freight_usd"],
+                    "othc_aud": values["othc_aud"],
+                    "doc_aud": values["doc_aud"],
+                    "cmr_aud": values["cmr_aud"],
+                    "ams_usd": values["ams_usd"],
+                    "lss_usd": values["lss_usd"],
+                    "dthc": values["dthc"],
+                    "free_time": values["free_time"],
+                },
+            )
+            print("\nTariff Added.\n")
+        elif action == "Delete Tariff Rate":
+            tariff_manager.delete_tariff()
+        elif action == "Export Tariff Rates to Excel":
+            tariff_manager.export_tariff_rates()
+        elif action == "Back to Main Menu":
+            break
 
 
 if __name__ == "__main__":
