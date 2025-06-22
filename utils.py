@@ -92,6 +92,10 @@ def save_tariff(tariffs):
         json.dump([rate.to_dict() for rate in tariffs], f, indent=4)
 
 
+def format_rate_choice(rate, index):
+    return f"{index + 1}: {rate.load_port} to {rate.destination_port} ({rate.container_type})"
+
+
 class TariffManager(Manager):
     def __init__(self):
         super().__init__()
@@ -120,10 +124,7 @@ class TariffManager(Manager):
         if not self.items:
             print("\n No Tariff rates to delete.")
             return
-        choices = [
-            f"{idx + 1}: {r.load_port} to {r.destination_port} ({r.container_type})"
-            for idx, r in enumerate(self.items)
-        ]
+        choices = [format_rate_choice(r, idx) for idx, r in enumerate(self.items)]
         selected = questionary.select("Select Tariff to delete:", choices=choices).ask()
         rate_idx = int(selected.split(":")[0]) - 1
         confirm = questionary.confirm("Confirm to delete tariff?").ask()
@@ -131,7 +132,7 @@ class TariffManager(Manager):
             deleted = self.items.pop(rate_idx)
             self.save_tariffs()
             print(
-                f"\n Deleted tariffs: {deleted.load_port} to {deleted.destination_port}\n"
+                f"\n Deleted tariffs: {deleted.load_port} to {deleted.destination_port} ({deleted.container_type})\n"
             )
         else:
             print("\nCancelled.\n")
