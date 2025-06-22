@@ -5,8 +5,6 @@ from customer import Customer, Rate, TariffRate, Manager
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
 from datetime import datetime
-import re
-import os
 
 DATA_FILE = "data/rates.json"
 TARIFF_FILE = "data/tariff.json"
