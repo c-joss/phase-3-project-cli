@@ -10,6 +10,7 @@ from utils import (
     load_data,
     save_data,
     rate_values_prompt,
+    EXPORT_DIR,
     VALID_LOAD_PORTS,
     VALID_DEST_PORTS,
     VALID_CONTAINERS,
@@ -219,7 +220,6 @@ def delete_rate():
 
 
 def export_quote():
-    EXPORT_DIR = "exports"
     customers = load_data()
 
     if not customers:
@@ -281,7 +281,6 @@ def export_quote():
 
 
 def export_by_destination():
-    EXPORT_DIR = "exports"
     customers = load_data()
 
     if not customers:
@@ -335,7 +334,6 @@ def export_by_destination():
 
 
 def import_quote():
-    EXPORT_DIR = "exports"
     customers = load_data()
     file_path = questionary.text(
         "Enter path to Excel file to import:", default=f"{EXPORT_DIR}/"
