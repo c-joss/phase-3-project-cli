@@ -1,6 +1,6 @@
 import json
 import questionary
-from customer import Customer, Rate, TariffRate
+from customer import Customer, Rate, TariffRate, Manager
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from datetime import datetime
@@ -60,40 +60,60 @@ def save_data(customers):
         json.dump([c.to_dict() for c in customers], f, indent=4)
 
 
-class TariffManager:
+def load_tariff():
+    try:
+        with open(TARIFF_FILE, "r") as f:
+            data = json.load(f)
+            tariffs = []
+            for r in data:
+                rate = TariffRate(
+                    r["load_port"],
+                    r["destination_port"],
+                    r["container_type"],
+                    {
+                        "freight_usd": r["freight_usd"],
+                        "othc_aud": r["othc_aud"],
+                        "doc_aud": r["doc_aud"],
+                        "cmr_aud": r["cmr_aud"],
+                        "ams_usd": r["ams_usd"],
+                        "lss_usd": r["lss_usd"],
+                        "dthc": r["dthc"],
+                        "free_time": r["free_time"],
+                    },
+                )
+                tariffs.append(rate)
+            return tariffs
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+
+def save_tariff(tariffs):
+    with open(TARIFF_FILE, "w") as f:
+        json.dump([rate.to_dict() for rate in tariffs], f, indent=4)
+
+
+class TariffManager(Manager):
     def __init__(self):
-        self.tariffs = self.load_tariff()
+        super().__init__()
+        self.load_tariffs()
 
-    def save_tariff(self):
-        with open(TARIFF_FILE, "w") as f:
-            json.dump([rate.to_dict() for rate in self.tariffs], f)
+    def load_tariffs(self):
+        self.items = load_tariff()
 
-    def load_tariff(self):
-        try:
-            with open(TARIFF_FILE, "r") as f:
-                data = json.load(f)
-                return [
-                    TariffRate(
-                        r["load_port"],
-                        r["destination_port"],
-                        r["container_type"],
-                        r,
-                    )
-                    for r in data
-                ]
-        except (FileNotFoundError, json.JSONDecodeError):
-            return []
+    def save_tariffs(self):
+        save_tariff(self.items)
 
-    def add_tariff(self, load_port, destination_port, container_type, values):
+    def add_tariffs(self, load_port, destination_port, container_type, values):
         rate = TariffRate(load_port, destination_port, container_type, values)
-        self.tariffs.append(rate)
-        self.save_tariff()
+        self.add(rate)
+        self.save_tariffs()
 
     def view_tariffs(self):
-        if not self.tariffs:
+        if not self.items:
             print("\n No Tariff rate found.")
             return
-        for r in self.tariffs:
+
+        for r in self.items:
             print(
                 f"{r.load_port} to {r.destination_port} ({r.container_type}) | "
                 f"Freight: {r.freight_usd} USD | OTHC: {r.othc_aud} AUD | "
@@ -102,19 +122,19 @@ class TariffManager:
             )
 
     def delete_tariff(self):
-        if not self.tariffs:
+        if not self.items:
             print("\n No Tariff rates to delete.")
             return
         choices = [
             f"{idx + 1}: {r.load_port} to {r.destination_port} ({r.container_type})"
-            for idx, r in enumerate(self.tariffs)
+            for idx, r in enumerate(self.items)
         ]
         selected = questionary.select("Select Tariff to delete:", choices=choices).ask()
         rate_idx = int(selected.split(":")[0]) - 1
         confirm = questionary.confirm("Confirm to delete tariff?").ask()
         if confirm:
-            deleted = self.tariffs.pop(rate_idx)
-            self.save_tariff()
+            deleted = self.items.pop(rate_idx)
+            self.save_tariffs()
             print(
                 f"\n Deleted tariffs: {deleted.load_port} to {deleted.destination_port}\n"
             )
@@ -122,7 +142,7 @@ class TariffManager:
             print("\nCancelled.\n")
 
     def export_tariff_rates(self):
-        export_rates_to_excel(self.tariffs, filename_prefix="Tariff_Rates")
+        export_rates_to_excel(self.items, filename_prefix="Tariff_Rates")
 
 
 def export_rates_to_excel(rates, filename_prefix):

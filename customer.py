@@ -79,3 +79,21 @@ class TariffRate(Rate):
             tariff_values["dthc"],
             tariff_values["free_time"],
         )
+
+
+class Manager:
+    def __init__(self):
+        self.items = []
+
+    def add(self, item):
+        self.items.append(item)
+
+    def delete(self, index):
+        if 0 <= index < len(self.items):
+            del self.items[index]
+
+    def __len__(self):
+        return len(self.items)
+
+    def __iter__(self):
+        return iter(self.items)

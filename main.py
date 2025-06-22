@@ -563,7 +563,7 @@ def manage_tariff_rate():
         dthc = questionary.select("Select DTHC Terms:", choices=VALID_DTHC).ask()
         free_time = questionary.text("Free Time:").ask()
 
-        tariff_manager.add_tariff(
+        tariff_manager.add_tariffs(
             load_port,
             destination_port,
             container_type,

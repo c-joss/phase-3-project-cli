@@ -1,1 +1,15 @@
-[{"load_port": "Melbourne", "destination_port": "Shanghai", "container_type": "20GP", "freight_usd": "400", "othc_aud": "400", "doc_aud": "120", "cmr_aud": "30", "ams_usd": "20", "lss_usd": "35", "dthc": "Collect", "free_time": "14 Days"}]
+[
+    {
+        "load_port": "Melbourne",
+        "destination_port": "Shanghai",
+        "container_type": "40REHC",
+        "freight_usd": "800",
+        "othc_aud": "400",
+        "doc_aud": "500",
+        "cmr_aud": "400",
+        "ams_usd": "50",
+        "lss_usd": "60",
+        "dthc": "Collect",
+        "free_time": "14 Days"
+    }
+]
