@@ -25,6 +25,7 @@ def main_menu():
                 "Edit Rates",
                 "Delete Rate",
                 "Export Quote to Excel",
+                "Export Customer by Destination Port",
                 "Import Quote from Excel",
                 "Exit",
             ],
@@ -40,6 +41,8 @@ def main_menu():
             delete_rate()
         elif choice == "Export Quote to Excel":
             export_quote()
+        elif choice == "Export Customer by Destination Port":
+            export_by_destination()
         elif choice == "Import Quote from Excel":
             import_quote()
         elif choice == "Exit":
@@ -298,6 +301,88 @@ def export_quote():
     wb.save(filename)
 
     print(f"\n Quote exported to {filename}\n")
+
+
+def export_by_destination():
+    EXPORT_DIR = "exports"
+    customers = load_data()
+
+    if not customers:
+        print("\n No rates found.")
+        return
+
+    all_dest_ports = sorted(set(r.destination_port for c in customers for r in c.rates))
+
+    dest_port = questionary.select(
+        "Select Destination Port to export:", choices=all_dest_ports
+    ).ask()
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Quote"
+
+    ws["A1"] = f"Destination Port: {dest_port}"
+    ws["A1"].font = Font(bold=True, size=14)
+
+    ws.append([])
+
+    headers = [
+        "Customer",
+        "POL",
+        "POD",
+        "Container",
+        "Freight USD",
+        "OTHC AUD",
+        "DOC AUD",
+        "CMR AUD",
+        "AMS USD",
+        "LSS USD",
+        "DTHC",
+        "Free Time",
+    ]
+    ws.append(headers)
+
+    for cell in ws[3]:
+        cell.font = Font(bold=True)
+
+    rates_exported = 0
+
+    for customer in customers:
+        matching_rates = [r for r in customer.rates if r.destination_port == dest_port]
+        for rate in matching_rates:
+            row = [
+                customer.name,
+                rate.load_port,
+                rate.destination_port,
+                rate.container_type,
+                rate.freight_usd,
+                rate.othc_aud,
+                rate.doc_aud,
+                rate.cmr_aud,
+                rate.ams_usd,
+                rate.lss_usd,
+                rate.dthc,
+                rate.free_time,
+            ]
+            ws.append(row)
+            rates_exported += 1
+
+    for column_cells in ws.columns:
+        length = max(len(str(cell.value)) for cell in column_cells)
+        col_letter = column_cells[0].column_letter
+        ws.column_dimensions[col_letter].width = length + 2
+
+    if rates_exported == 0:
+        print(f"\n No rates found for {dest_port}.")
+        return
+
+    safe_dest = re.sub(r"\W+", "_", dest_port)
+    current_date = datetime.now().strftime("%d_%m_%Y")
+
+    filename = f"{EXPORT_DIR}/Rates_{safe_dest}_{current_date}.xlsx"
+    wb.save(filename)
+
+    print(f"\n Exported {rates_exported} rates for {dest_port} to {filename}\n")
 
 
 def import_quote():
