@@ -49,7 +49,7 @@ def main_menu():
 def add_rate():
     customers = load_data()
 
-    customer_name = questionary.text("Enter customer name:").ask()
+    customer_name = questionary.text("Enter customer name:").ask().upper()
 
     existing_customer = next((c for c in customers if c.name == customer_name), None)
     if not existing_customer:
