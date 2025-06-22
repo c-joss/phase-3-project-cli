@@ -40,6 +40,21 @@ class Rate:
             "free_time": self.free_time,
         }
 
+    def to_row(self):
+        return [
+            self.load_port,
+            self.destination_port,
+            self.container_type,
+            self.freight_usd,
+            self.othc_aud,
+            self.doc_aud,
+            self.cmr_aud,
+            self.ams_usd,
+            self.lss_usd,
+            self.dthc,
+            self.free_time,
+        ]
+
     def __str__(self):
         return (
             f"{self.load_port} {self.destination_port} | "

@@ -1,1 +1,15 @@
-[]
+[
+    {
+        "load_port": "Melbourne",
+        "destination_port": "Taichung",
+        "container_type": "40GP",
+        "freight_usd": "500",
+        "othc_aud": "400",
+        "doc_aud": "400",
+        "cmr_aud": "400",
+        "ams_usd": "400",
+        "lss_usd": "400",
+        "dthc": "Collect",
+        "free_time": "14 Days"
+    }
+]

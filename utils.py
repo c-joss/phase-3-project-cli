@@ -26,6 +26,24 @@ VALID_DEST_PORTS = [
 VALID_CONTAINERS = ["20GP", "40GP", "40HC", "20RE", "40REHC", "20OT", "40OT"]
 VALID_DTHC = ["Collect", "Prepaid"]
 
+EXPORT_HEADERS = [
+    "POL",
+    "POD",
+    "Container",
+    "Freight USD",
+    "OTHC AUD",
+    "DOC AUD",
+    "CMR AUD",
+    "AMS USD",
+    "LSS USD",
+    "DTHC",
+    "Free Time",
+]
+
+EXPORT_HEADERS_WITH_CUSTOMER = [
+    "Customer",
+] + EXPORT_HEADERS
+
 
 def load_data():
     try:
@@ -156,39 +174,13 @@ def export_rates_to_excel(rates, filename_prefix):
 
     ws.append([])
 
-    headers = [
-        "POL",
-        "POD",
-        "Container",
-        "Freight USD",
-        "OTHC AUD",
-        "DOC AUD",
-        "CMR AUD",
-        "AMS USD",
-        "LSS USD",
-        "DTHC",
-        "Free Time",
-    ]
-    ws.append(headers)
+    ws.append(EXPORT_HEADERS)
 
     for cell in ws[3]:
         cell.font = Font(bold=True)
 
     for rate in rates:
-        row = [
-            getattr(rate, "load_port", ""),
-            getattr(rate, "destination_port", ""),
-            getattr(rate, "container_type", ""),
-            getattr(rate, "freight_usd", ""),
-            getattr(rate, "othc_aud", ""),
-            getattr(rate, "doc_aud", ""),
-            getattr(rate, "cmr_aud", ""),
-            getattr(rate, "ams_usd", ""),
-            getattr(rate, "lss_usd", ""),
-            getattr(rate, "dthc", ""),
-            getattr(rate, "free_time", ""),
-        ]
-        ws.append(row)
+        ws.append(rate.to_row())
 
     for column_cells in ws.columns:
         length = max(len(str(cell.value)) for cell in column_cells)

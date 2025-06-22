@@ -14,6 +14,8 @@ from utils import (
     VALID_DEST_PORTS,
     VALID_CONTAINERS,
     VALID_DTHC,
+    EXPORT_HEADERS,
+    EXPORT_HEADERS_WITH_CUSTOMER,
 )
 
 
@@ -244,20 +246,7 @@ def export_quote():
 
     ws.append([])
 
-    headers = [
-        "POL",
-        "POD",
-        "Container",
-        "Freight USD",
-        "OTHC AUD",
-        "DOC AUD",
-        "CMR AUD",
-        "AMS USD",
-        "LSS USD",
-        "DTHC",
-        "Free Time",
-    ]
-    ws.append(headers)
+    ws.append(EXPORT_HEADERS)
 
     for cell in ws[3]:
         cell.font = Font(bold=True)
@@ -314,21 +303,7 @@ def export_by_destination():
 
     ws.append([])
 
-    headers = [
-        "Customer",
-        "POL",
-        "POD",
-        "Container",
-        "Freight USD",
-        "OTHC AUD",
-        "DOC AUD",
-        "CMR AUD",
-        "AMS USD",
-        "LSS USD",
-        "DTHC",
-        "Free Time",
-    ]
-    ws.append(headers)
+    ws.append(EXPORT_HEADERS_WITH_CUSTOMER)
 
     for cell in ws[3]:
         cell.font = Font(bold=True)
@@ -338,21 +313,7 @@ def export_by_destination():
     for customer in customers:
         matching_rates = [r for r in customer.rates if r.destination_port == dest_port]
         for rate in matching_rates:
-            row = [
-                customer.name,
-                rate.load_port,
-                rate.destination_port,
-                rate.container_type,
-                rate.freight_usd,
-                rate.othc_aud,
-                rate.doc_aud,
-                rate.cmr_aud,
-                rate.ams_usd,
-                rate.lss_usd,
-                rate.dthc,
-                rate.free_time,
-            ]
-            ws.append(row)
+            ws.append([customer.name] + rate.to_row())
             rates_exported += 1
 
     for column_cells in ws.columns:
