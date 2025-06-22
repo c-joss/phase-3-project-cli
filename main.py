@@ -1,11 +1,12 @@
 import questionary
-from customer import Rate, Customer, TariffRate
+from customer import Rate, Customer
 from tabulate import tabulate
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
 from datetime import datetime
 import re
 from utils import (
+    TariffManager,
     load_data,
     save_data,
     VALID_LOAD_PORTS,
@@ -541,9 +542,9 @@ def manage_tariff_rate():
         ],
     ).ask()
 
-    if action == "View Tariffs":
+    if action == "View Tariff Rates":
         tariff_manager.view_tariffs()
-    elif action == "Add Tariff":
+    elif action == "Add Tariff Rate":
         load_port = questionary.select("Load Port", choices=VALID_LOAD_PORTS).ask()
         destination_port = questionary.select(
             "Destination Port:", choices=VALID_DEST_PORTS
@@ -577,7 +578,7 @@ def manage_tariff_rate():
             },
         )
         print("\nTariff Added.\n")
-    elif action == "Delete Tariff":
+    elif action == "Delete Tariff Rate":
         tariff_manager.delete_tariff()
     else:
         return
