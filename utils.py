@@ -1,9 +1,15 @@
 import json
 import questionary
 from customer import Customer, Rate, TariffRate
+from openpyxl import Workbook
+from openpyxl.styles import Font
+from datetime import datetime
+import re
+import os
 
 DATA_FILE = "data/rates.json"
 TARIFF_FILE = "data/tariff.json"
+EXPORT_DIR = "exports"
 
 VALID_LOAD_PORTS = ["Melbourne", "Sydney", "Brisbane", "AU"]
 VALID_DEST_PORTS = [
@@ -114,3 +120,67 @@ class TariffManager:
             )
         else:
             print("\nCancelled.\n")
+
+    def export_tariff_rates(self):
+        export_rates_to_excel(self.tariffs, filename_prefix="Tariff_Rates")
+
+
+def export_rates_to_excel(rates, filename_prefix):
+
+    if not rates:
+        print("\n No rates found.")
+        return
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Rates"
+
+    ws["A1"] = f"{filename_prefix} Export"
+    ws["A1"].font = Font(bold=True, size=14)
+
+    ws.append([])
+
+    headers = [
+        "POL",
+        "POD",
+        "Container",
+        "Freight USD",
+        "OTHC AUD",
+        "DOC AUD",
+        "CMR AUD",
+        "AMS USD",
+        "LSS USD",
+        "DTHC",
+        "Free Time",
+    ]
+    ws.append(headers)
+
+    for cell in ws[3]:
+        cell.font = Font(bold=True)
+
+    for rate in rates:
+        row = [
+            getattr(rate, "load_port", ""),
+            getattr(rate, "destination_port", ""),
+            getattr(rate, "container_type", ""),
+            getattr(rate, "freight_usd", ""),
+            getattr(rate, "othc_aud", ""),
+            getattr(rate, "doc_aud", ""),
+            getattr(rate, "cmr_aud", ""),
+            getattr(rate, "ams_usd", ""),
+            getattr(rate, "lss_usd", ""),
+            getattr(rate, "dthc", ""),
+            getattr(rate, "free_time", ""),
+        ]
+        ws.append(row)
+
+    for column_cells in ws.columns:
+        length = max(len(str(cell.value)) for cell in column_cells)
+        col_letter = column_cells[0].column_letter
+        ws.column_dimensions[col_letter].width = length + 2
+
+    current_date = datetime.now().strftime("%d_%m_%Y")
+    filename = f"{EXPORT_DIR}/{filename_prefix}_{current_date}.xlsx"
+    wb.save(filename)
+
+    print(f"\n Exported to {len(rates)} rates to {filename}\n")

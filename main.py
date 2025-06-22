@@ -538,6 +538,7 @@ def manage_tariff_rate():
             "View Tariff Rates",
             "Add Tariff Rate",
             "Delete Tariff Rate",
+            "Export Tariff Rates to Excel",
             "Back to Main Menu",
         ],
     ).ask()
@@ -580,6 +581,8 @@ def manage_tariff_rate():
         print("\nTariff Added.\n")
     elif action == "Delete Tariff Rate":
         tariff_manager.delete_tariff()
+    elif action == "Export Tariff Rates to Excel":
+        tariff_manager.export_tariff_rates()
     else:
         return
 
