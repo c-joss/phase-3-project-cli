@@ -467,3 +467,29 @@ def save_constants(load_ports, dest_ports, containers, dthc_values):
             f,
             indent=4,
         )
+
+
+def replace_or_add_rate(customer, new_rate, replace_existing=True):
+    existing_rate = next(
+        (r for r in customer.rates if
+         r.load_port == new_rate.load_port and
+         r.destination_port == new_rate.destination_port and
+         r.container_type == new_rate.container_type),
+         None
+    )
+    if existing_rate:
+        if replace_existing:
+            customer.rates = [
+                r for r in customer.rates
+                if not (
+                    r.load_port == new_rate.load_port and
+                    r.destination_port == new_rate.destination_port and
+                    r.container_type == new_rate.container_type
+                )
+            ]
+            customer.add_rate(new_rate)
+
+    else:
+        customer.add_rate(new_rate)
+
+    return customer

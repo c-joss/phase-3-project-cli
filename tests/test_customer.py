@@ -1,7 +1,10 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from customer import Customer, Rate
+from utils import replace_or_add_rate
+
 
 def test_add_rate_increases_rate_count():
     customer = Customer("Test Co")
@@ -11,10 +14,15 @@ def test_add_rate_increases_rate_count():
     customer.add_rate(rate)
     assert len(customer.rates) == 1
 
+
 def test_replace_or_add_rate_updates_existing_when_confirmed():
     customer = Customer("Test Co")
-    original = Rate("SYD", "TOKYO", "20GP", 800, 400, 200, 300, 35, 30, "COLLECT", "14 Days")
-    updated = Rate("SYD", "TOKYO", "20GP", 900, 500, 250, 350, 40, 35, "COLLECT", "10 Days")
+    original = Rate(
+        "SYD", "TOKYO", "20GP", 800, 400, 200, 300, 35, 30, "COLLECT", "14 Days"
+    )
+    updated = Rate(
+        "SYD", "TOKYO", "20GP", 900, 500, 250, 350, 40, 35, "COLLECT", "10 Days"
+    )
 
     customer.add_rate(original)
 
@@ -25,4 +33,4 @@ def test_replace_or_add_rate_updates_existing_when_confirmed():
 
     assert len(customer.rates) == 1
     assert customer.rates[0].freight_usd == 900
-    assert customer[0].dthc == "PREPAID"
+    assert customer.rates[0].dthc == "COLLECT"
