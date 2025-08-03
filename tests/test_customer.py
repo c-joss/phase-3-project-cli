@@ -107,7 +107,7 @@ def test_replace_or_add_rate_skips_update_when_prompt_return_none(monkeypatch):
     assert customer.rates[0].dthc == "COLLECT"
 
 
-def test_export_rates_to_csv(tmp_path):
+def test_export_rates_to_excel(tmp_path):
     customer = Customer("Test Co")
     customer.add_rate(
         Rate("SYD", "TOKYO", "20GP", 999, 999, 999, 999, 99, 99, "PREPAID", "99 Days")
