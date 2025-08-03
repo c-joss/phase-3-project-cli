@@ -205,5 +205,36 @@
                 "free_time": "14 Days"
             }
         ]
+    },
+    {
+        "name": "TEST",
+        "rates": [
+            {
+                "load_port": "MELBOURNE",
+                "destination_port": "SHANGHAI",
+                "container_type": "20GP",
+                "freight_usd": "400",
+                "othc_aud": "400",
+                "doc_aud": "300",
+                "cmr_aud": "400",
+                "ams_usd": "400",
+                "lss_usd": "400",
+                "dthc": "COLLECT",
+                "free_time": "14 days"
+            },
+            {
+                "load_port": "MELBOURNE",
+                "destination_port": "NINGBO",
+                "container_type": "20GP",
+                "freight_usd": "300",
+                "othc_aud": "300",
+                "doc_aud": "300",
+                "cmr_aud": "300",
+                "ams_usd": "300",
+                "lss_usd": "300",
+                "dthc": "COLLECT",
+                "free_time": "14 days"
+            }
+        ]
     }
 ]

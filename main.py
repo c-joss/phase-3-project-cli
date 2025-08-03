@@ -10,6 +10,7 @@ from utils import (
     load_data,
     save_data,
     rate_values_prompt,
+    replace_or_add_rate,
     EXPORT_DIR,
     EXPORT_HEADERS,
     EXPORT_HEADERS_WITH_CUSTOMER,
@@ -82,7 +83,25 @@ def add_rate():
         values["free_time"],
     )
 
-    existing_customer.add_rate(rate)
+    existing_rate = next(
+        (
+            r
+            for r in existing_customer.rates
+            if r.load_port == rate.load_port
+            and r.destination_port == rate.destination_port
+            and r.container_type == rate.container_type
+        ),
+        None,
+    )
+
+    if existing_rate:
+        print("\n A rate for this route and container type already exist.")
+        print("Existing:".ljust(12), existing_rate)
+        print("Existing:".ljust(12), rate)
+        confirm = questionary.confirm("Do you want to update the existing rate?").ask()
+        replace_or_add_rate(existing_customer, rate, replace_existing=confirm)
+    else:
+        existing_customer.add_rate(rate)
 
     save_data(customers)
 
