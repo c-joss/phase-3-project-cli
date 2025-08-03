@@ -79,3 +79,26 @@ def test_replace_or_add_rate_adds_new_rate_when_no_existing_rate():
         and r.container_type == "40HC"
         for r in customer.rates
     )
+
+
+def test_replace_or_add_rate_skips_update_when_prompt_return_none(monkeypatch):
+    customer = Customer("Test Co")
+    original = Rate(
+        "SYD", "TOKYO", "20GP", 800, 400, 200, 300, 35, 30, "COLLECT", "14 Days"
+    )
+    updated = Rate(
+        "SYD", "TOKYO", "20GP", 999, 999, 999, 999, 99, 99, "PREPAID", "99 Days"
+    )
+
+    customer.add_rate(original)
+
+    monkeypatch.setattr(
+        "questionary.confirm",
+        lambda prompt: type("FakePrompt", (), {"ask": staticmethod(lambda: None)}),
+    )
+
+    replace_or_add_rate(customer, updated, replace_existing=None)
+
+    assert len(customer.rates) == 1
+    assert customer.rates[0].freight_usd == 800
+    assert customer.rates[0].dthc == "COLLECT"
