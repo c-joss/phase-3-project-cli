@@ -213,27 +213,27 @@
                 "load_port": "MELBOURNE",
                 "destination_port": "SHANGHAI",
                 "container_type": "20GP",
-                "freight_usd": "400",
-                "othc_aud": "400",
-                "doc_aud": "300",
-                "cmr_aud": "400",
-                "ams_usd": "400",
-                "lss_usd": "400",
+                "freight_usd": "1",
+                "othc_aud": "1",
+                "doc_aud": "1",
+                "cmr_aud": "1",
+                "ams_usd": "1",
+                "lss_usd": "1",
                 "dthc": "COLLECT",
-                "free_time": "14 days"
+                "free_time": "1"
             },
             {
                 "load_port": "MELBOURNE",
                 "destination_port": "NINGBO",
                 "container_type": "20GP",
-                "freight_usd": "300",
-                "othc_aud": "300",
-                "doc_aud": "300",
-                "cmr_aud": "300",
-                "ams_usd": "300",
-                "lss_usd": "300",
+                "freight_usd": "1",
+                "othc_aud": "1",
+                "doc_aud": "1",
+                "cmr_aud": "1",
+                "ams_usd": "1",
+                "lss_usd": "1",
                 "dthc": "COLLECT",
-                "free_time": "14 days"
+                "free_time": "1"
             }
         ]
     }
