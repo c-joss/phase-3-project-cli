@@ -5,6 +5,7 @@ import glob
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from utils import replace_or_add_rate, export_rates_to_excel
+from main import import_quote
 from customer import Customer, Rate
 
 
@@ -119,3 +120,43 @@ def test_export_rates_to_csv(tmp_path):
 
     matches = list(glob.glob(f"{export_dir}/{file_prefix}_*.xlsx"))
     assert matches, "Expected Excel export file was not created"
+
+
+def test_import_quote_adds_rate(tmp_path, monkeypatch):
+    customer = Customer("Test Co")
+    customer.add_rate(
+        Rate("SYD", "TOKYO", "20GP", 500, 300, 100, 200, 40, 20, "COLLECT", "14 Days")
+    )
+
+    file_prefix = "test_import"
+    export_rates_to_excel(customer.rates, file_prefix, directory=str(tmp_path))
+    matches = list(glob.glob(f"{tmp_path}/{file_prefix}_*.xlsx"))
+    assert matches, "Test export file not found"
+    file_path = matches[0]
+
+    monkeypatch.setattr("main.load_data", lambda: [customer])
+
+    monkeypatch.setattr(
+        "questionary.text",
+        lambda *args, **kwargs: type(
+            "Prompt", (), {"ask": staticmethod(lambda: str(file_path))}
+        )(),
+    )
+    monkeypatch.setattr(
+        "questionary.select",
+        lambda *args, **kwargs: type(
+            "Prompt", (), {"ask": staticmethod(lambda: "Test Co")}
+        )(),
+    )
+    monkeypatch.setattr(
+        "questionary.confirm",
+        lambda *args, **kwargs: type(
+            "Prompt", (), {"ask": staticmethod(lambda: True)}
+        )(),
+    )
+
+    customer.rates = []
+    import_quote()
+
+    assert len(customer.rates) == 1
+    assert customer.rates[0].load_port == "SYD"
