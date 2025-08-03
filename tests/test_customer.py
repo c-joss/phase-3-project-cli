@@ -1,9 +1,11 @@
 import sys
 import os
+import glob
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from utils import replace_or_add_rate, export_rates_to_excel
 from customer import Customer, Rate
-from utils import replace_or_add_rate
 
 
 def test_add_rate_increases_rate_count():
@@ -102,3 +104,18 @@ def test_replace_or_add_rate_skips_update_when_prompt_return_none(monkeypatch):
     assert len(customer.rates) == 1
     assert customer.rates[0].freight_usd == 800
     assert customer.rates[0].dthc == "COLLECT"
+
+
+def test_export_rates_to_csv(tmp_path):
+    customer = Customer("Test Co")
+    customer.add_rate(
+        Rate("SYD", "TOKYO", "20GP", 999, 999, 999, 999, 99, 99, "PREPAID", "99 Days")
+    )
+
+    export_dir = tmp_path / "exports"
+    file_prefix = "test_export"
+
+    export_rates_to_excel(customer.rates, file_prefix, directory=str(export_dir))
+
+    matches = list(glob.glob(f"{export_dir}/{file_prefix}_*.xlsx"))
+    assert matches, "Expected Excel export file was not created"

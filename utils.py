@@ -1,4 +1,5 @@
 import json
+import os
 import questionary
 from tabulate import tabulate
 from customer import Customer, Rate, TariffRate, Manager
@@ -337,7 +338,11 @@ class TariffManager(Manager):
         )
 
 
-def export_rates_to_excel(rates, filename_prefix):
+def export_rates_to_excel(rates, filename_prefix, directory="exports"):
+    os.makedirs(directory, exist_ok=True)
+    today = datetime.now().strftime("%d_%m_%Y")
+    filename = os.path.join(directory, f"{filename_prefix}_{today}.xlsx")
+    ...
 
     if not rates:
         print("\n No rates found.")
@@ -366,7 +371,7 @@ def export_rates_to_excel(rates, filename_prefix):
         ws.column_dimensions[col_letter].width = length + 2
 
     current_date = datetime.now().strftime("%d_%m_%Y")
-    filename = f"{EXPORT_DIR}/{filename_prefix}_{current_date}.xlsx"
+    filename = os.path.join(directory, f"{filename_prefix}_{current_date}.xlsx")
     wb.save(filename)
 
     print(f"\n Exported to {len(rates)} rates to {filename}\n")
