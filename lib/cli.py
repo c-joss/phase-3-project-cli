@@ -234,20 +234,10 @@ def export_quote():
     for cell in ws[3]:
         cell.font = Font(bold=True)
 
-    for rate in customer.rates:
-        row = [
-            rate.load_port,
-            rate.destination_port,
-            rate.container_type,
-            rate.freight_usd,
-            rate.othc_aud,
-            rate.doc_aud,
-            rate.cmr_aud,
-            rate.ams_usd,
-            rate.lss_usd,
-            rate.dthc,
-            rate.free_time,
-        ]
+    for r in customer.rates:
+        row = [r.load_port, r.destination_port, r.container_type,
+        r.freight_usd, r.othc_aud, r.doc_aud, r.cmr_aud,
+        r.ams_usd, r.lss_usd, r.dthc, r.free_time]
         ws.append(row)
 
     for column_cells in ws.columns:
