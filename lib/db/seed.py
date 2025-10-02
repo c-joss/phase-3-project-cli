@@ -3,7 +3,7 @@ from pathlib import Path
 from sqlalchemy.orm import Session as OrmSession
 from lib.db.models import Base, engine, Session, Customer, Rate, Tariff
 
-DATA_DIR = Path(__file__).resolve().parents[3] / "data"
+DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 RATES_JSON = DATA_DIR / "rates.json"
 TARIFF_JSON = DATA_DIR/ "tariff.json"
 
