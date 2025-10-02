@@ -157,10 +157,8 @@ def edit_rates():
     finally:
         s.close()
 
-
 def delete_rate():
     customers = load_data()
-
     if not customers:
         print("\n No rates found.")
         return
@@ -169,7 +167,6 @@ def delete_rate():
     customer_name = questionary.select(
         "Select Customer:", choices=customer_choices
     ).ask()
-
     customer = next(c for c in customers if c.name == customer_name)
 
     if not customer.rates:
@@ -180,17 +177,29 @@ def delete_rate():
         for idx, r in enumerate(customer.rates)
     ]
     selected = questionary.select("Select Rate to Delete:", choices=rate_choices).ask()
-
     rate_idx = int(selected.split(":")[0]) - 1
+    target = customer.rates[rate_idx]    
 
-    confirm = questionary.confirm("Confirm to delete rate?").ask()
-
-    if confirm:
-        deleted = customer.rates.pop(rate_idx)
-        save_data(customers)
-        print(f"\n Deleted rate: {deleted.load_port} to {deleted.destination_port}\n")
-    else:
+    if not questionary.confirm("Confirm to delete rate?").ask():
         print("\nCancelled. \n")
+        return
+
+    s = Session()
+    try:
+        obj = s.query(Rate).filter_by(
+            customer_id=target.customer_id,
+            load_port=target.load_port,
+            destination_port=target.destination_port,
+            container_type=target.container_type,
+        ).first()
+        if obj:
+            s.delete(obj)
+            s.commit()
+            print(f"\n Deleted rate: {target.load_port} to {target.destination_port}\n")
+        else:
+            print("\n Rate not found.\n")
+    finally:
+        s.close()
 
 
 def export_quote():
