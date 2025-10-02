@@ -1,418 +1,86 @@
+from __future__ import annotations
+from pathlib import Path
+from typing import List, Tuple, Dict, Any, Optional
 import json
-import os
 import questionary
-from tabulate import tabulate
+from openpyxl import Workbook
 from lib.db.models import Session, Customer, Rate, Tariff
-from openpyxl import Workbook, load_workbook
-from openpyxl.styles import Font
-from datetime import datetime
 
-DATA_FILE = "data/rates.json"
-TARIFF_FILE = "data/tariff.json"
-EXPORT_DIR = "exports"
+DATA_CONSTANTS = Path(__file__).resolve().parents[1] / "data" / "data_constants.json"
 
-EXPORT_HEADERS = [
-    "POL",
-    "POD",
-    "Container",
-    "Freight USD",
-    "OTHC AUD",
-    "DOC AUD",
-    "CMR AUD",
-    "AMS USD",
-    "LSS USD",
-    "DTHC",
-    "Free Time",
-]
-
-EXPORT_HEADERS_WITH_CUSTOMER = [
-    "Customer",
-] + EXPORT_HEADERS
-
-
-def load_data():
-    s = Session()
-    customers = s.query(Customer).order_by(Customer.name).all()
-    s.close()
-    return customers
-
-
-def save_data(customers):
-    pass
-
-
-def load_tariff():
-    try:
-        with open(TARIFF_FILE, "r") as f:
-            data = json.load(f)
-            tariffs = []
-            for r in data:
-                rate = TariffRate(
-                    r["load_port"],
-                    r["destination_port"],
-                    r["container_type"],
-                    {
-                        "freight_usd": r["freight_usd"],
-                        "othc_aud": r["othc_aud"],
-                        "doc_aud": r["doc_aud"],
-                        "cmr_aud": r["cmr_aud"],
-                        "ams_usd": r["ams_usd"],
-                        "lss_usd": r["lss_usd"],
-                        "dthc": r["dthc"],
-                        "free_time": r["free_time"],
-                    },
-                )
-                tariffs.append(rate)
-            return tariffs
-    except (FileNotFoundError, json.JSONDecodeError):
-        return []
-
-
-def save_tariff(tariffs):
-    with open(TARIFF_FILE, "w") as f:
-        json.dump([rate.to_dict() for rate in tariffs], f, indent=4)
-
-
-def format_rate_choice(rate, index):
-    return f"{index + 1}: {rate.load_port} to {rate.destination_port} ({rate.container_type})"
-
-
-class TariffManager(Manager):
-    def __init__(self):
-        super().__init__()
-        (
-            self.valid_load_ports,
-            self.valid_dest_ports,
-            self.valid_containers,
-            self.valid_dthc,
-        ) = load_constants()
-        self.load_tariffs()
-
-    def load_tariffs(self):
-        self.items = load_tariff()
-
-    def save_tariffs(self):
-        save_tariff(self.items)
-
-    def add_tariffs(self, load_port, destination_port, container_type, values):
-        rate = TariffRate(load_port, destination_port, container_type, values)
-        self.add(rate)
-        self.save_tariffs()
-
-    def view_tariffs(self):
-        if not self.items:
-            print("\n No Tariff rate found.")
-            return
-
-        table = [
-            [
-                r.load_port,
-                r.destination_port,
-                r.container_type,
-                r.freight_usd,
-                r.othc_aud,
-                r.doc_aud,
-                r.cmr_aud,
-                r.ams_usd,
-                r.lss_usd,
-                r.dthc,
-                r.free_time,
-            ]
-            for r in self.items
-        ]
-
-        headers = [
-            "Load Port",
-            "Destination",
-            "Container",
-            "Freight USD",
-            "OTHC AUD",
-            "DOC AUD",
-            "CMR AUD",
-            "AMS USD",
-            "LSS USD",
-            "DTHC",
-            "Free Time",
-        ]
-
-        print("\n Tariff Rates:\n")
-        print(tabulate(table, headers=headers, tablefmt="grid"))
-
-    def delete_tariff(self):
-        if not self.items:
-            print("\n No Tariff rates to delete.")
-            return
-        choices = [format_rate_choice(r, idx) for idx, r in enumerate(self.items)]
-        selected = questionary.select("Select Tariff to delete:", choices=choices).ask()
-        rate_idx = int(selected.split(":")[0]) - 1
-        confirm = questionary.confirm("Confirm to delete tariff?").ask()
-        if confirm:
-            deleted = self.items.pop(rate_idx)
-            self.save_tariffs()
-            print(
-                f"\n Deleted tariffs: {deleted.load_port} to {deleted.destination_port} ({deleted.container_type})\n"
-            )
-        else:
-            print("\nCancelled.\n")
-
-    def export_tariff_rates(self):
-        export_rates_to_excel(self.items, filename_prefix="Tariff_Rates")
-
-    def import_tariff_rates(self):
-        file_path = questionary.text(
-            "Enter path to Excel file to import:", default=f"{EXPORT_DIR}/"
-        ).ask()
-
+def _load_constants() -> Dict[str, Any]:
+    if DATA_CONSTANTS.exists():
         try:
-            wb = load_workbook(filename=file_path)
-        except Exception as e:
-            print(f"\n Could not open file: {e}\n")
-            return
+            return json.loads(DATA_CONSTANTS.read_text())
+        except Exception:
+            pass
+    return {
+        "VALID_LOAD_PORTS": ["MELBOURNE", "SYDNEY", "BRISBANE"],
+        "VALID_DEST_PORTS": ["TAICHUNG", "SHANGHAI", "NINGBO", "SHEKOU", "TOKYO"],
+        "VALID_CONTAINERS": ["20GP", "40GP", "40HC", "20RE", "40REHC"],
+        "VALID_DTHC": ["COLLECT", "PREPAID"],
+    }
 
-        ws = wb.active
+def get_valid_ports() -> Tuple[List[str], List[str], List[str], List[str]]:
+    const = _load_constants()
+    return (
+        const.get("VALID_LOAD_PORTS", []),
+        const.get("VALID_DEST_PORTS", []),
+        const.get("VALID_CONTAINERS", []),
+        const.get("VALID_DTHC", []),
+    )
 
-        import_count = 0
+def load_data() -> List[Customer]:
+    s = Session()
+    try:
+        return s.query(Customer).order_by(Customer.name).all()
+    finally:
+        s.close()
 
-        for row in ws.iter_rows(min_row=4, values_only=True):
-            (
-                load_port,
-                destination_port,
-                container_type,
-                freight_usd,
-                othc_aud,
-                doc_aud,
-                cmr_aud,
-                ams_usd,
-                lss_usd,
-                dthc,
-                free_time,
-            ) = row
+def save_data(_customers: Any) -> None:
+    return
 
-            load_port = load_port.upper()
-            destination_port = destination_port.upper()
+def _ask_choice(prompt: str, choices: List[str]) -> str:
+    return questionary.select(prompt, choices=choices).ask()
 
-            existing_rate = next(
-                (
-                    r
-                    for r in self.items
-                    if r.load_port == load_port
-                    and r.destination_port == destination_port
-                    and r.container_type == container_type
-                ),
-                None,
-            )
+def _ask_text(prompt: str, default: Optional[str] = None) -> str:
+    return questionary.text(prompt, default=default or "").ask() or ""
 
-            if existing_rate:
-                if (
-                    existing_rate.to_dict()
-                    == TariffRate(
-                        load_port,
-                        destination_port,
-                        container_type,
-                        {
-                            "freight_usd": freight_usd,
-                            "othc_aud": othc_aud,
-                            "doc_aud": doc_aud,
-                            "cmr_aud": cmr_aud,
-                            "ams_usd": ams_usd,
-                            "lss_usd": lss_usd,
-                            "dthc": dthc,
-                            "free_time": free_time,
-                        },
-                    ).to_dict()
-                ):
-                    print(
-                        f"Tariff for {load_port} → {destination_port} ({container_type}) already exists. Skipping."
-                    )
-                    continue
+def _ask_confirm(prompt: str, default: bool = False) -> bool:
+    return questionary.confirm(prompt, default=default).ask()
 
-                confirm_replace = questionary.confirm(
-                    f"Tariff for {load_port} → {destination_port} ({container_type}) exists with different rates. Replace?"
-                ).ask()
-
-                if confirm_replace:
-                    self.items = [
-                        r
-                        for r in self.items
-                        if not (
-                            r.load_port == load_port
-                            and r.destination_port == destination_port
-                            and r.container_type == container_type
-                        )
-                    ]
-                    print(
-                        f"Replaced tariff for {load_port} → {destination_port} ({container_type})"
-                    )
-                else:
-                    print(
-                        f"Skipped updating {load_port} → {destination_port} ({container_type})"
-                    )
-                    continue
-
-            if load_port not in self.valid_load_ports:
-                confirm_add = questionary.confirm(
-                    f"\nLoad Port '{load_port}' not in valid list. Would you like to add it?"
-                ).ask()
-                if confirm_add:
-                    self.valid_load_ports.append(load_port)
-                    save_constants(
-                        self.valid_load_ports,
-                        self.valid_dest_ports,
-                        self.valid_containers,
-                        self.valid_dthc,
-                    )
-                    print(f"Added load port: {load_port}")
-                else:
-                    print(f"Rate for '{load_port}' not added.")
-                    continue
-
-            if destination_port not in self.valid_dest_ports:
-                confirm_add = questionary.confirm(
-                    f"\nDestination Port '{destination_port}' not in valid list. Would you like to add it?"
-                ).ask()
-                if confirm_add:
-                    self.valid_dest_ports.append(destination_port)
-                    save_constants(
-                        self.valid_load_ports,
-                        self.valid_dest_ports,
-                        self.valid_containers,
-                        self.valid_dthc,
-                    )
-                    print(f"Added destination port: {destination_port}")
-                else:
-                    print(f"Rate for '{destination_port}' not added.")
-                    continue
-
-            rate = TariffRate(
-                load_port,
-                destination_port,
-                container_type,
-                {
-                    "freight_usd": freight_usd,
-                    "othc_aud": othc_aud,
-                    "doc_aud": doc_aud,
-                    "cmr_aud": cmr_aud,
-                    "ams_usd": ams_usd,
-                    "lss_usd": lss_usd,
-                    "dthc": dthc,
-                    "free_time": free_time,
-                },
-            )
-
-            self.add(rate)
-            import_count += 1
-
-        if import_count > 0:
-            self.save_tariffs()
-
-        print(f"\n Import complete: {import_count} new tariff rates imported.\n")
-
-    def get_valid_ports(self):
-        return (
-            self.valid_load_ports,
-            self.valid_dest_ports,
-            self.valid_containers,
-            self.valid_dthc,
-        )
-
-
-def export_rates_to_excel(rates, filename_prefix, directory="exports"):
-    os.makedirs(directory, exist_ok=True)
-    today = datetime.now().strftime("%d_%m_%Y")
-    filename = os.path.join(directory, f"{filename_prefix}_{today}.xlsx")
-    ...
-
-    if not rates:
-        print("\n No rates found.")
-        return
-
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Rates"
-
-    ws["A1"] = f"{filename_prefix} Export"
-    ws["A1"].font = Font(bold=True, size=14)
-
-    ws.append([])
-
-    ws.append(EXPORT_HEADERS)
-
-    for cell in ws[3]:
-        cell.font = Font(bold=True)
-
-    for rate in rates:
-        ws.append(rate.to_row())
-
-    for column_cells in ws.columns:
-        length = max(len(str(cell.value)) for cell in column_cells)
-        col_letter = column_cells[0].column_letter
-        ws.column_dimensions[col_letter].width = length + 2
-
-    current_date = datetime.now().strftime("%d_%m_%Y")
-    filename = os.path.join(directory, f"{filename_prefix}_{current_date}.xlsx")
-    wb.save(filename)
-
-    print(f"\n Exported to {len(rates)} rates to {filename}\n")
-
-
-def rate_values_prompt(load_ports, dest_ports, containers, dthc_values, defaults=None):
+def rate_values_prompt(
+    load_ports: List[str],
+    dest_ports: List[str],
+    containers: List[str],
+    dthc_values: List[str],
+    defaults: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     defaults = defaults or {}
+    load_port = _ask_choice("Load Port:", load_ports)
+    dest_port = _ask_choice("Destination Port:", dest_ports)
+    container = _ask_choice("Container Type:", containers)
 
-    load_port = questionary.autocomplete(
-        "Enter Load Port:",
-        choices=load_ports,
-        default=defaults.get("load_port", ""),
-        validate=lambda text: text in load_ports or "Please select a valid port",
-    ).ask()
+    def _num(name: str, default: Any = "") -> float:
+        val = _ask_text(f"{name}:", str(defaults.get(name, default)))
+        try:
+            return float(val)
+        except Exception:
+            return 0.0
 
-    destination_port = questionary.autocomplete(
-        "Enter Destination Port:",
-        choices=dest_ports,
-        default=defaults.get("destination_port", ""),
-        validate=lambda text: text in dest_ports or "Please select a valid port",
-    ).ask()
-
-    container_type_default = defaults.get("container_type", "")
-    container_type = questionary.select(
-        "Select Container Type:",
-        choices=containers,
-        default=(
-            container_type_default if container_type_default in containers else None
-        ),
-    ).ask()
-
-    freight_usd = questionary.text(
-        "Freight (USD):", default=str(defaults.get("freight_usd", ""))
-    ).ask()
-    othc_aud = questionary.text(
-        "OTHC (AUD):", default=str(defaults.get("othc_aud", ""))
-    ).ask()
-    doc_aud = questionary.text(
-        "DOC (AUD):", default=str(defaults.get("doc_aud", ""))
-    ).ask()
-    cmr_aud = questionary.text(
-        "CMR (AUD):", default=str(defaults.get("cmr_aud", ""))
-    ).ask()
-    ams_usd = questionary.text(
-        "AMS (USD):", default=str(defaults.get("ams_usd", ""))
-    ).ask()
-    lss_usd = questionary.text(
-        "LSS (USD):", default=str(defaults.get("lss_usd", ""))
-    ).ask()
-    dthc_default = defaults.get("dthc", "")
-    dthc = questionary.select(
-        "Select DTHC Terms:",
-        choices=dthc_values,
-        default=dthc_default if dthc_default in dthc_values else None,
-    ).ask()
-    free_time = questionary.text(
-        "Free Time:", default=str(defaults.get("free_time", ""))
-    ).ask()
+    freight_usd = _num("freight_usd", defaults.get("freight_usd", "0"))
+    othc_aud = _num("othc_aud", defaults.get("othc_aud", "0"))
+    doc_aud = _num("doc_aud", defaults.get("doc_aud", "0"))
+    cmr_aud = _num("cmr_aud", defaults.get("cmr_aud", "0"))
+    ams_usd = _num("ams_usd", defaults.get("ams_usd", "0"))
+    lss_usd = _num("lss_usd", defaults.get("lss_usd", "0"))
+    dthc = _ask_choice("DTHC:", dthc_values)
+    free_time = _ask_text("Free Time (e.g., 14 Days):", defaults.get("free_time", "14 Days"))
 
     return {
         "load_port": load_port,
-        "destination_port": destination_port,
-        "container_type": container_type,
+        "destination_port": dest_port,
+        "container_type": container,
         "freight_usd": freight_usd,
         "othc_aud": othc_aud,
         "doc_aud": doc_aud,
@@ -423,60 +91,118 @@ def rate_values_prompt(load_ports, dest_ports, containers, dthc_values, defaults
         "free_time": free_time,
     }
 
+def format_rate_choice(r: Rate, idx: int) -> str:
+    return f"{idx+1}: {r.load_port} → {r.destination_port} ({r.container_type})  USD {r.freight_usd:.2f}"
 
-def load_constants():
-    try:
-        with open("data/data_constants.json", "r") as f:
-            data = json.load(f)
-            return (
-                data["VALID_LOAD_PORTS"],
-                data["VALID_DEST_PORTS"],
-                data["VALID_CONTAINERS"],
-                data["VALID_DTHC"],
+class TariffManager:
+    def __init__(self) -> None:
+        self.items: List[Tariff] = []
+
+    def load_tariffs(self) -> None:
+        s = Session()
+        try:
+            self.items = s.query(Tariff).all()
+        finally:
+            s.close()
+
+    def save_tariffs(self) -> None:
+        return
+
+    def add_tariffs(
+        self,
+        load_port: str,
+        destination_port: str,
+        container_type: str,
+        values: Dict[str, Any],
+    ) -> None:
+        s = Session()
+        try:
+            t = Tariff(
+                load_port=load_port,
+                destination_port=destination_port,
+                container_type=container_type,
+                freight_usd=float(values["freight_usd"]),
+                othc_aud=float(values["othc_aud"]),
+                doc_aud=float(values["doc_aud"]),
+                cmr_aud=float(values["cmr_aud"]),
+                ams_usd=float(values["ams_usd"]),
+                lss_usd=float(values["lss_usd"]),
+                dthc=str(values["dthc"]).upper(),
+                free_time=str(values["free_time"]),
             )
-    except (FileNotFoundError, json.JSONDecodeError):
-        return [], [], [], []
+            s.add(t)
+            s.commit()
+        finally:
+            s.close()
+        self.load_tariffs()
 
-
-def save_constants(load_ports, dest_ports, containers, dthc_values):
-    with open("data/data_constants.json", "w") as f:
-        json.dump(
-            {
-                "VALID_LOAD_PORTS": load_ports,
-                "VALID_DEST_PORTS": dest_ports,
-                "VALID_CONTAINERS": containers,
-                "VALID_DTHC": dthc_values,
-            },
-            f,
-            indent=4,
-        )
-
-
-def replace_or_add_rate(customer, new_rate, replace_existing=True):
-    existing_rate = next(
-        (
-            r
-            for r in customer.rates
-            if r.load_port == new_rate.load_port
-            and r.destination_port == new_rate.destination_port
-            and r.container_type == new_rate.container_type
-        ),
-        None,
-    )
-    if existing_rate:
-        if replace_existing:
-            customer.rates = [
-                r
-                for r in customer.rates
-                if not (
-                    r.load_port == new_rate.load_port
-                    and r.destination_port == new_rate.destination_port
-                    and r.container_type == new_rate.container_type
+    def delete_tariff(self, selected_index: int) -> bool:
+        if not self.items:
+            print("\n No Tariff rates to delete.")
+            return False
+        i = max(0, min(selected_index, len(self.items) - 1))
+        to_delete = self.items[i]
+        s = Session()
+        try:
+            obj = s.get(Tariff, to_delete.id)
+            if obj:
+                s.delete(obj)
+                s.commit()
+                print(
+                    f"\n Deleted tariff: {to_delete.load_port} → "
+                    f"{to_delete.destination_port} ({to_delete.container_type})\n"
                 )
-            ]
-            customer.add_rate(new_rate)
+                return True
+            return False
+        finally:
+            s.close()
+            self.load_tariffs()
 
-    else:
-        customer.add_rate(new_rate)
+EXPORTS_DIR = Path(__file__).resolve().parents[1] / "exports"
+EXPORTS_DIR.mkdir(exist_ok=True)
 
-    return customer
+def _rate_to_row(r: Rate) -> List[Any]:
+    return [
+        r.load_port, r.destination_port, r.container_type,
+        r.freight_usd, r.othc_aud, r.doc_aud, r.cmr_aud,
+        r.ams_usd, r.lss_usd, r.dthc, r.free_time
+    ]
+
+def _tariff_to_row(t: Tariff) -> List[Any]:
+    return [
+        t.load_port, t.destination_port, t.container_type,
+        t.freight_usd, t.othc_aud, t.doc_aud, t.cmr_aud,
+        t.ams_usd, t.lss_usd, t.dthc, t.free_time
+    ]
+
+def export_rates_to_excel(rates: List[Rate], filename: str) -> Path:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Rates"
+    headers = [
+        "Load Port", "Destination Port", "Container",
+        "Freight USD", "OTHC AUD", "DOC AUD", "CMR AUD",
+        "AMS USD", "LSS USD", "DTHC", "Free Time"
+    ]
+    ws.append(headers)
+    for r in rates:
+        ws.append(_rate_to_row(r))
+    out = EXPORTS_DIR / f"{filename}.xlsx"
+    wb.save(out)
+    return out
+
+def export_tariff_rates_to_excel(tariffs: List[Tariff], filename: str) -> Path:
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Tariff Rates"
+    headers = [
+        "Load Port", "Destination Port", "Container",
+        "Freight USD", "OTHC AUD", "DOC AUD", "CMR AUD",
+        "AMS USD", "LSS USD", "DTHC", "Free Time"
+    ]
+    ws.append(headers)
+    for t in tariffs:
+        ws.append(_tariff_to_row(t))
+    out = EXPORTS_DIR / f"{filename}.xlsx"
+    wb.save(out)
+    return out
