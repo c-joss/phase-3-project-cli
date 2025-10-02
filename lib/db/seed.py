@@ -13,7 +13,7 @@ def _to_float(v):
     except Exception:
         return 0.0
 
-def seed_customers_and_rates(session: Session):
+def seed_customers_and_rates(session: OrmSession):
     if not RATES_JSON.exists():
         return
 
@@ -54,4 +54,37 @@ def seed_customers_and_rates(session: Session):
                 for k, v in fields.items():
                     setattr(rate, k, v)
             else:
-                session.add(Rate(**fields))    
+                session.add(Rate(**fields))
+
+def seed_tariffs(session: OrmSession):
+    if not TARIFF_JSON.exists():
+        return
+
+    data = json.loads(TARIFF_JSON.read_text())
+
+    for t in data:
+        tariff = session.query(Tariff).filter_by(
+            load_port=t["load_port"],
+            destination_port=t["destination_port"],
+            container_type=t["container_type"],
+        ).first()
+
+        fields = dict(
+            load_port=t["load_port"],
+            destination_port=t["destination_port"],
+            container_type=t["container_type"],
+            freight_usd=_to_float(t["freight_usd"]),
+            othc_aud=_to_float(t["othc_aud"]),
+            doc_aud=_to_float(t["doc_aud"]),
+            cmr_aud=_to_float(t["cmr_aud"]),
+            ams_usd=_to_float(t["ams_usd"]),
+            lss_usd=_to_float(t["lss_usd"]),
+            dthc=str(t["dthc"]).upper(),
+            free_time=str(t["free_time"]),
+        )
+
+        if tariff:
+            for k, v in fields.items():
+                setattr(tariff, k, v)
+        else:
+            session.add(Tariff(**fields))
