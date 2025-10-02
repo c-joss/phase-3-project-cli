@@ -319,130 +319,91 @@ def import_quote():
         return
 
     ws = wb.active
-
     first_header = ws["A3"].value
     is_multi_customer = (first_header or "").lower() == "customer"
 
-    if is_multi_customer:
-        print("\n Import by destination port")
-    else:
-        customer_choices = [c.name for c in customers]
-        customer_name = questionary.select(
-            "Select Customer to import rates to", choices=customer_choices
-        ).ask()
+    s = Session()
+    new_count = updated_count = skipped_count = 0
+    try:
+        if not is_multi_customer:
+            customer_choices = [c.name for c in customers]
+            if not customer_choices:
+                print("\n No customers found. Add at least one rate or choose a multi-customer file.\n")
+                return
+            customer_name = questionary.select(
+                "Select Customer to import rates to:",
+                choices=customer_choices
+            ).ask().strip().upper()
+            target_customer = s.query(Customer).filter_by(name=customer_name).first()
+            if not target_customer:
+                target_customer = Customer(name=customer_name)
+                s.add(target_customer)
+                s.flush()
 
-        customer = next(c for c in customers if c.name == customer_name)
-
-    import_count = 0
-    skip_count = 0
-
-    for row in ws.iter_rows(min_row=4, values_only=True):
-        if is_multi_customer:
-            (
-                customer_name,
-                load_port,
-                destination_port,
-                container_type,
-                freight_usd,
-                othc_aud,
-                doc_aud,
-                cmr_aud,
-                ams_usd,
-                lss_usd,
-                dthc,
-                free_time,
-            ) = row
-
-            customer_name_upper = customer_name.upper()
-
-            existing_customer = next(
-                (c for c in customers if c.name == customer_name_upper), None
-            )
-            if not existing_customer:
-                existing_customer = Customer(customer_name_upper)
-                customers.append(existing_customer)
-            target_customer = existing_customer
-        else:
-            (
-                load_port,
-                destination_port,
-                container_type,
-                freight_usd,
-                othc_aud,
-                doc_aud,
-                cmr_aud,
-                ams_usd,
-                lss_usd,
-                dthc,
-                free_time,
-            ) = row
-            target_customer = customer
-
-        new_rate = Rate(
-            load_port,
-            destination_port,
-            container_type,
-            freight_usd,
-            othc_aud,
-            doc_aud,
-            cmr_aud,
-            ams_usd,
-            lss_usd,
-            dthc,
-            free_time,
-        )
-
-        existing_rate = next(
-            (
-                r
-                for r in target_customer.rates
-                if r.load_port == load_port
-                and r.destination_port == destination_port
-                and r.container_type == container_type
-            ),
-            None,
-        )
-
-        if existing_rate:
-            if existing_rate.to_dict() == new_rate.to_dict():
-                print(
-                    f"Rate for {load_port} to {destination_port} ({container_type}) already exists - no changes were made."
-                )
-                skip_count += 1
+        for row in ws.iter_rows(min_row=4, values_only=True):
+            if row is None or all(v is None for v in row):
                 continue
+
+            if is_multi_customer:
+                (customer_name, load_port, destination_port, container_type,
+                 freight_usd, othc_aud, doc_aud, cmr_aud, ams_usd, lss_usd, dthc, free_time) = row
+                customer_name = (customer_name or "").strip().upper()
+                if not customer_name:
+                    skipped_count += 1
+                    continue
+                target_customer = s.query(Customer).filter_by(name=customer_name).first()
+                if not target_customer:
+                    target_customer = Customer(name=customer_name)
+                    s.add(target_customer)
+                    s.flush()
             else:
-                print(
-                    f"\n Rate exists for {load_port} to {destination_port} ({container_type})"
-                )
-                print("Existing:".ljust(12), existing_rate)
-                print("New:".ljust(12), new_rate)
-                confirm = questionary.confirm("Replace existing rate?").ask()
-                if confirm:
-                    target_customer.rates = [
-                        r
-                        for r in target_customer.rates
-                        if not (
-                            r.load_port == load_port
-                            and r.destination_port == destination_port
-                            and r.container_type == container_type
-                        )
-                    ]
-                    target_customer.add_rate(new_rate)
-                    print("Rate replaced.")
-                    import_count += 1
-                else:
-                    print("Rate skipped")
-                    skip_count += 1
-        else:
-            target_customer.add_rate(new_rate)
-            print(
-                f"Imported new rate: {load_port} to {destination_port} ({container_type})"
+                (load_port, destination_port, container_type,
+                 freight_usd, othc_aud, doc_aud, cmr_aud, ams_usd, lss_usd, dthc, free_time) = row
+
+            def _f(x):
+                try:
+                    return float(x)
+                except Exception:
+                    return 0.0
+
+            values = dict(
+                load_port=(load_port or "").strip(),
+                destination_port=(destination_port or "").strip(),
+                container_type=(container_type or "").strip(),
+                freight_usd=_f(freight_usd),
+                othc_aud=_f(othc_aud),
+                doc_aud=_f(doc_aud),
+                cmr_aud=_f(cmr_aud),
+                ams_usd=_f(ams_usd),
+                lss_usd=_f(lss_usd),
+                dthc=str(dthc or "").upper(),
+                free_time=str(free_time or ""),
+                customer_id=target_customer.id,
             )
-            import_count += 1
 
-    save_data(customers)
+            existing = s.query(Rate).filter_by(
+                customer_id=target_customer.id,
+                load_port=values["load_port"],
+                destination_port=values["destination_port"],
+                container_type=values["container_type"],
+            ).first()
 
-    print(f"\n Import complete: {import_count} new/replaced, {skip_count} skipped.\n")
+            if existing:
+                changed = any(getattr(existing, k) != v for k, v in values.items())
+                if changed:
+                    for k, v in values.items():
+                        setattr(existing, k, v)
+                    updated_count += 1
+                else:
+                    skipped_count += 1
+            else:
+                s.add(Rate(**values))
+                new_count += 1
+
+        s.commit()
+        print(f"\n Import complete: {new_count} new, {updated_count} updated, {skipped_count} skipped.\n")
+    finally:
+        s.close()
 
 
 def manage_tariff_rate():
