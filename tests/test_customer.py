@@ -4,8 +4,8 @@ import glob
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from utils import replace_or_add_rate, export_rates_to_excel
-from main import import_quote
+from helpers import replace_or_add_rate, export_rates_to_excel
+from cli import import_quote
 from customer import Customer, Rate
 
 
