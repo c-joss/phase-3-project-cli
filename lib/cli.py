@@ -88,48 +88,19 @@ def add_rate():
 
 def view_rates():
     customers = load_data()
-
     if not customers:
         print("\n No rates found. Please add rates first")
         return
 
+    headers = ["POL","POD","Container","Freight USD","OTHC AUD","DOC AUD","CMR AUD","AMS USD","LSS USD","DTHC","Free Time"]
     for customer in customers:
         print(f"\nCustomer: {customer.name}")
-
-        table_data = []
-        for rate in customer.rates:
-            table_data.append(
-                [
-                    rate.load_port,
-                    rate.destination_port,
-                    rate.container_type,
-                    rate.freight_usd,
-                    rate.othc_aud,
-                    rate.doc_aud,
-                    rate.cmr_aud,
-                    rate.ams_usd,
-                    rate.lss_usd,
-                    rate.dthc,
-                    rate.free_time,
-                ]
-            )
-
-        headers = [
-            "POL",
-            "POD",
-            "Container",
-            "Freight USD",
-            "OTHC AUD",
-            "DOC AUD",
-            "CMR AUD",
-            "AMS USD",
-            "LSS USD",
-            "DTHC",
-            "Free Time",
-        ]
-
-        print(tabulate(table_data, headers=headers, tablefmt="grid"))
-
+        rows = [[
+            r.load_port, r.destination_port, r.container_type,
+            r.freight_usd, r.othc_aud, r.doc_aud, r.cmr_aud,
+            r.ams_usd, r.lss_usd, r.dthc, r.free_time
+        ] for r in customer.rates]
+        print(tabulate(rows, headers=headers, tablefmt="grid"))
 
 def edit_rates():
     customers = load_data()
