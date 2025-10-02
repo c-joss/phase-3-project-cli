@@ -104,7 +104,6 @@ def view_rates():
 
 def edit_rates():
     customers = load_data()
-
     if not customers:
         print("\n No rates found.")
         return
@@ -116,7 +115,6 @@ def edit_rates():
         validate=lambda text: text in customer_choices
         or "Please select a valid customer",
     ).ask()
-
     customer = next(c for c in customers if c.name == customer_name)
 
     if not customer.rates:
@@ -131,44 +129,33 @@ def edit_rates():
     rate_idx = int(selected.split(":")[0]) - 1
     rate = customer.rates[rate_idx]
 
-    tariff_manager = TariffManager()
-    load_ports, dest_ports, containers, dthc_values = tariff_manager.get_valid_ports()
-
+    load_ports, dest_ports, containers, dthc_values = get_valid_ports()
     values = rate_values_prompt(
-        load_ports,
-        dest_ports,
-        containers,
-        dthc_values,
+        load_ports, dest_ports, containers, dthc_values,
         defaults={
-            "load_port": rate.load_port,
-            "destination_port": rate.destination_port,
-            "container_type": rate.container_type,
-            "freight_usd": rate.freight_usd,
-            "othc_aud": rate.othc_aud,
-            "doc_aud": rate.doc_aud,
-            "cmr_aud": rate.cmr_aud,
-            "ams_usd": rate.ams_usd,
-            "lss_usd": rate.lss_usd,
-            "dthc": rate.dthc,
+            "load_port": rate.load_port, "destination_port": rate.destination_port,
+            "container_type": rate.container_type, "freight_usd": rate.freight_usd,
+            "othc_aud": rate.othc_aud, "doc_aud": rate.doc_aud, "cmr_aud": rate.cmr_aud,
+            "ams_usd": rate.ams_usd, "lss_usd": rate.lss_usd, "dthc": rate.dthc,
             "free_time": rate.free_time,
         },
     )
 
-    rate.load_port = values["load_port"]
-    rate.destination_port = values["destination_port"]
-    rate.container_type = values["container_type"]
-    rate.freight_usd = values["freight_usd"]
-    rate.othc_aud = values["othc_aud"]
-    rate.doc_aud = values["doc_aud"]
-    rate.cmr_aud = values["cmr_aud"]
-    rate.ams_usd = values["ams_usd"]
-    rate.lss_usd = values["lss_usd"]
-    rate.dthc = values["dthc"]
-    rate.free_time = values["free_time"]
-
-    save_data(customers)
-
-    print("\n Rate updated.\n")
+    s = Session()
+    try:
+        db_rate = s.query(Rate).filter_by(
+            customer_id=rate.customer_id,
+            load_port=rate.load_port,
+            destination_port=rate.destination_port,
+            container_type=rate.container_type,
+        ).first()
+        for k in ("load_port","destination_port","container_type","freight_usd","othc_aud",
+                  "doc_aud","cmr_aud","ams_usd","lss_usd","dthc","free_time"):
+            setattr(db_rate, k, values[k])
+        s.commit()
+        print("\n Rate updated.\n")
+    finally:
+        s.close()
 
 
 def delete_rate():
