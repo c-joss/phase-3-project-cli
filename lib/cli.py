@@ -1,5 +1,5 @@
 import questionary
-from customer import Rate, Customer
+from lib.db.models import Session, Customer, Rate
 from tabulate import tabulate
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font

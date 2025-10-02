@@ -2,7 +2,7 @@ import json
 import os
 import questionary
 from tabulate import tabulate
-from customer import Customer, Rate, TariffRate, Manager
+from lib.db.models import Session, Customer, Rate, Tariff as TariffRate
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
 from datetime import datetime
