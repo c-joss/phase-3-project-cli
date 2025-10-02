@@ -5,15 +5,9 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
 from datetime import datetime
 import re
-from helpers import (
-    TariffManager,
-    load_data,
-    save_data,
-    rate_values_prompt,
-    replace_or_add_rate,
-    EXPORT_DIR,
-    EXPORT_HEADERS,
-    EXPORT_HEADERS_WITH_CUSTOMER,
+from lib.helpers import (
+    load_data, get_valid_ports, rate_values_prompt, format_rate_choice,
+    TariffManager, export_rates_to_excel, export_tariff_rates_to_excel
 )
 
 
@@ -56,57 +50,41 @@ def main_menu():
 
 
 def add_rate():
-    customers = load_data()
-
-    customer_name = questionary.text("Enter customer name:").ask().upper()
-
-    existing_customer = next((c for c in customers if c.name == customer_name), None)
-    if not existing_customer:
-        existing_customer = Customer(customer_name)
-        customers.append(existing_customer)
-
-    tariff_manager = TariffManager()
-    load_ports, dest_ports, containers, dthc_values = tariff_manager.get_valid_ports()
+    customer_name = questionary.text("Enter customer name:").ask().strip().upper()
+    load_ports, dest_ports, containers, dthc_values = get_valid_ports()
     values = rate_values_prompt(load_ports, dest_ports, containers, dthc_values)
 
-    rate = Rate(
-        values["load_port"],
-        values["destination_port"],
-        values["container_type"],
-        values["freight_usd"],
-        values["othc_aud"],
-        values["doc_aud"],
-        values["cmr_aud"],
-        values["ams_usd"],
-        values["lss_usd"],
-        values["dthc"],
-        values["free_time"],
-    )
+    s = Session()
+    try:
+        customer = s.query(Customer).filter_by(name=customer_name).first()
+        if not customer:
+            customer = Customer(name=customer_name)
+            s.add(customer)
+            s.flush()
 
-    existing_rate = next(
-        (
-            r
-            for r in existing_customer.rates
-            if r.load_port == rate.load_port
-            and r.destination_port == rate.destination_port
-            and r.container_type == rate.container_type
-        ),
-        None,
-    )
+        existing = s.query(Rate).filter_by(
+            customer_id=customer.id,
+            load_port=values["load_port"],
+            destination_port=values["destination_port"],
+            container_type=values["container_type"],
+        ).first()
 
-    if existing_rate:
-        print("\n A rate for this route and container type already exist.")
-        print("Existing:".ljust(12), existing_rate)
-        print("Existing:".ljust(12), rate)
-        confirm = questionary.confirm("Do you want to update the existing rate?").ask()
-        replace_or_add_rate(existing_customer, rate, replace_existing=confirm)
-    else:
-        existing_customer.add_rate(rate)
+        if existing:
+            print("\n A rate for this route and container type already exist.")
+            print("Existing:", format_rate_choice(existing, 0))
+            if questionary.confirm("Do you want to update the existing rate?").ask():
+                for k in ("freight_usd","othc_aud","doc_aud","cmr_aud","ams_usd","lss_usd","dthc","free_time"):
+                    setattr(existing, k, values[k])
+            else:
+                print("\n Skipped.\n")
+                return
+        else:
+            s.add(Rate(customer_id=customer.id, **values))
 
-    save_data(customers)
-
-    print("\n Rate added.\n")
-
+        s.commit()
+        print("\n Rate saved.\n")
+    finally:
+        s.close()
 
 def view_rates():
     customers = load_data()

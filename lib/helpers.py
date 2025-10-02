@@ -5,6 +5,7 @@ import json
 import questionary
 from openpyxl import Workbook
 from lib.db.models import Session, Customer, Rate, Tariff
+from sqlalchemy.orm import joinedload
 
 DATA_CONSTANTS = Path(__file__).resolve().parents[1] / "data" / "data_constants.json"
 
@@ -30,10 +31,15 @@ def get_valid_ports() -> Tuple[List[str], List[str], List[str], List[str]]:
         const.get("VALID_DTHC", []),
     )
 
-def load_data() -> List[Customer]:
+def load_data():
     s = Session()
     try:
-        return s.query(Customer).order_by(Customer.name).all()
+        return (
+            s.query(Customer)
+             .options(joinedload(Customer.rates))
+             .order_by(Customer.name)
+             .all()
+        )
     finally:
         s.close()
 
