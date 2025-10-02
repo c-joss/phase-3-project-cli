@@ -2,7 +2,7 @@ import json
 import os
 import questionary
 from tabulate import tabulate
-from lib.db.models import Session, Customer, Rate, Tariff as TariffRate
+from lib.db.models import Session, Customer, Rate, Tariff
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
 from datetime import datetime
@@ -31,36 +31,14 @@ EXPORT_HEADERS_WITH_CUSTOMER = [
 
 
 def load_data():
-    try:
-        with open(DATA_FILE, "r") as f:
-            data = json.load(f)
-            customers = []
-            for c in data:
-                customer = Customer(c["name"])
-                for r in c["rates"]:
-                    rate = Rate(
-                        r["load_port"],
-                        r["destination_port"],
-                        r.get("container_type", ""),
-                        r["freight_usd"],
-                        r["othc_aud"],
-                        r["doc_aud"],
-                        r["cmr_aud"],
-                        r["ams_usd"],
-                        r["lss_usd"],
-                        r["dthc"],
-                        r["free_time"],
-                    )
-                    customer.add_rate(rate)
-                customers.append(customer)
-            return customers
-    except (FileNotFoundError, json.JSONDecodeError):
-        return []
+    s = Session()
+    customers = s.query(Customer).order_by(Customer.name).all()
+    s.close()
+    return customers
 
 
 def save_data(customers):
-    with open(DATA_FILE, "w") as f:
-        json.dump([c.to_dict() for c in customers], f, indent=4)
+    pass
 
 
 def load_tariff():
