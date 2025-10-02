@@ -438,13 +438,23 @@ def manage_tariff_rate():
 
         if action == "View Tariff Rates":
             tariff_manager.view_tariffs()
+            if not tariff_manager.items:
+                print("\n No Tariff rates found.")
+            else:
+                headers = [
+                    "POL","POD","Container","Freight USD","OTHC AUD","DOC AUD",
+                    "CMR AUD","AMS USD","LSS USD","DTHC","Free Time"
+                ]
+                rows = [[
+                    t.load_port, t.destination_port, t.container_type,
+                    t.freight_usd, t.othc_aud, t.doc_aud, t.cmr_aud,
+                    t.ams_usd, t.lss_usd, t.dthc, t.free_time
+                ] for t in tariff_manager.items]
+                print(tabulate(rows, headers=headers, tablefmt="grid"))
 
         elif action == "Add Tariff Rate":
-            load_ports, dest_ports, containers, dthc_values = (
-                tariff_manager.get_valid_ports()
-            )
+            load_ports, dest_ports, containers, dthc_values = get_valid_ports()
             values = rate_values_prompt(load_ports, dest_ports, containers, dthc_values)
-
             tariff_manager.add_tariffs(
                 values["load_port"],
                 values["destination_port"],
@@ -461,15 +471,34 @@ def manage_tariff_rate():
                 },
             )
             print("\nTariff Added.\n")
+
         elif action == "Delete Tariff Rate":
-            tariff_manager.delete_tariff()
+            tariff_manager.load_tariffs()
+            if not tariff_manager.items:
+                print("\n No Tariff rates to delete.")
+                continue
+            choices = [
+                f"{i+1}: {t.load_port} to {t.destination_port} ({t.container_type})"
+                for i, t in enumerate(tariff_manager.items)
+            ]
+            selected = questionary.select("Select Tariff to delete:", choices=choices).ask()
+            idx = int(selected.split(":")[0]) - 1
+            tariff_manager.delete_tariff(idx)
+
         elif action == "Export Tariff Rates to Excel":
-            tariff_manager.export_tariff_rates()
+            tariff_manager.load_tariffs()
+            if not tariff_manager.items:
+                print("\n No Tariff rates to export.")
+                continue
+            current_date = datetime.now().strftime("%d_%m_%Y")
+            path = export_tariff_rates_to_excel(tariff_manager.items, f"Tariff_Rates_{current_date}")
+            print(f"\nTariff exported to {path}\n")
+
         elif action == "Import Tariff Rates from Excel":
-            tariff_manager.import_tariff_rates()
+            print("\n Import Tariff from Excel is not implemented yet.\n")
+
         elif action == "Back to Main Menu":
             break
-
 
 if __name__ == "__main__":
     main_menu()
