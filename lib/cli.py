@@ -9,6 +9,15 @@ from lib.helpers import (
     load_data, get_valid_ports, rate_values_prompt, format_rate_choice,
     TariffManager, export_rates_to_excel, export_tariff_rates_to_excel
 )
+from pathlib import Path
+EXPORT_DIR = "exports"
+Path(EXPORT_DIR).mkdir(exist_ok=True)
+
+EXPORT_HEADERS = [
+    "POL","POD","Container","Freight USD","OTHC AUD","DOC AUD",
+    "CMR AUD","AMS USD","LSS USD","DTHC","Free Time"
+]
+EXPORT_HEADERS_WITH_CUSTOMER = ["Customer"] + EXPORT_HEADERS
 
 
 def main_menu():
@@ -285,7 +294,12 @@ def export_by_destination():
     for customer in customers:
         matching_rates = [r for r in customer.rates if r.destination_port == dest_port]
         for rate in matching_rates:
-            ws.append([customer.name] + rate.to_row())
+            ws.append([
+                customer.name,
+                rate.load_port, rate.destination_port, rate.container_type,
+                rate.freight_usd, rate.othc_aud, rate.doc_aud, rate.cmr_aud,
+                rate.ams_usd, rate.lss_usd, rate.dthc, rate.free_time
+            ])
             rates_exported += 1
 
     for column_cells in ws.columns:
