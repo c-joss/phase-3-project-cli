@@ -88,3 +88,20 @@ def seed_tariffs(session: OrmSession):
                 setattr(tariff, k, v)
         else:
             session.add(Tariff(**fields))
+
+def main():
+    Base.metadata.create_all(engine)
+    s = Session()
+    try:
+        seed_customers_and_rates(s)
+        seed_tariffs(s)
+        s.commit()
+        print("Seed complete.")
+    except Exception:
+        s.rollback()
+        raise
+    finally:
+        s.close()
+
+if __name__ == "__main__":
+    main()
