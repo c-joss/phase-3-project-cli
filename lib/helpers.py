@@ -6,6 +6,8 @@ import questionary
 from openpyxl import Workbook
 from lib.db.models import Session, Customer, Rate, Tariff
 from sqlalchemy.orm import joinedload
+from openpyxl import load_workbook
+from datetime import datetime
 
 DATA_CONSTANTS = Path(__file__).resolve().parents[1] / "data" / "data_constants.json"
 
@@ -31,7 +33,7 @@ def get_valid_ports() -> Tuple[List[str], List[str], List[str], List[str]]:
         const.get("VALID_DTHC", []),
     )
 
-def load_data():
+def load_data() -> List[Customer]:
     s = Session()
     try:
         return (
@@ -160,6 +162,73 @@ class TariffManager:
                 )
                 return True
             return False
+        finally:
+            s.close()
+            self.load_tariffs()
+
+    def import_tariff_rates(self):
+        file_path = questionary.text(
+            "Enter path to Tariff Excel file:", default=f"{EXPORTS_DIR}/"
+        ).ask()
+
+        try:
+            wb = load_workbook(filename=file_path)
+        except Exception as e:
+            print(f"\n Could not open file: {e}\n")
+            return
+
+        ws = wb.active
+        new_count = updated_count = skipped_count = 0
+        s = Session()
+        try:
+            for row in ws.iter_rows(min_row=2, values_only=True):
+                if row is None or all(v is None for v in row):
+                    continue
+
+                (load_port, destination_port, container_type,
+                freight_usd, othc_aud, doc_aud, cmr_aud,
+                ams_usd, lss_usd, dthc, free_time) = row
+
+                def _f(x):
+                    try:
+                        return float(x)
+                    except Exception:
+                        return 0.0
+
+                values = dict(
+                    load_port=(load_port or "").strip(),
+                    destination_port=(destination_port or "").strip(),
+                    container_type=(container_type or "").strip(),
+                    freight_usd=_f(freight_usd),
+                    othc_aud=_f(othc_aud),
+                    doc_aud=_f(doc_aud),
+                    cmr_aud=_f(cmr_aud),
+                    ams_usd=_f(ams_usd),
+                    lss_usd=_f(lss_usd),
+                    dthc=str(dthc or "").upper(),
+                    free_time=str(free_time or ""),
+                )
+
+                existing = s.query(Tariff).filter_by(
+                    load_port=values["load_port"],
+                    destination_port=values["destination_port"],
+                    container_type=values["container_type"],
+                ).first()
+
+                if existing:
+                    changed = any(getattr(existing, k) != v for k, v in values.items())
+                    if changed:
+                        for k, v in values.items():
+                            setattr(existing, k, v)
+                        updated_count += 1
+                    else:
+                        skipped_count += 1
+                else:
+                    s.add(Tariff(**values))
+                    new_count += 1
+
+            s.commit()
+            print(f"\n Tariff import complete: {new_count} new, {updated_count} updated, {skipped_count} skipped.\n")
         finally:
             s.close()
             self.load_tariffs()
