@@ -19,40 +19,56 @@ This is a terminal based Rate Manager application for managing customer rates an
 - Python 3.10 or higher
 - Operating System: Linux, macOS, or Windows
 - Recommended Terminal Size: 100x30 (for best formatting display)
-- Required packages: questionary, openpyxl, tabulate
+- Required packages: questionary, openpyxl, tabulate, sqlalchemy, alembic, prompt-toolkit==3.0.51 
 - For testing: pytest
 
 ## How to Run
 
 1. Clone or download this repository.
-2. Create and activate a virtual environment (recommended):
+2. Install dependencies with Pipenv:
 
     ```bash
-    python3 -m venv venv
-    source venv/bin/activate  # or venv\Scripts\activate on Windows
+    pipenv install
     ```
 
-3. Install dependencies:
+3. Activate the virtual environment:
 
     ```bash
-    pip install -r requirements.txt
+    pipenv shell
     ```
 
-4. Start the app:
+4. Run the database migrations:
 
     ```bash
-    python3 cli.py
+    alembic -c lib/db/alembic.ini upgrade head
+    ```
+
+5. Seed the database with initial data:
+
+    ```bash
+    python -m lib.db.seed
+    ```
+
+6. Start the CLI:
+
+    ```bash
+    python -m lib.cli
     ```
 
 ---
 
 ## Folder Structure
 
-- main.py: The main CLI application
-- customer.py, utils.py: Logic and helper functions
-- data/: Stores customer data, tariff data, and constants in JSON format
-- exports/: Stores exported Excel files with rate data
-- tests/: Contains test_customer.py unit tests for critical logic
+- `lib/cli.py` — main CLI entrypoint  
+- `lib/helpers.py` — UI prompts & Excel import/export  
+- `lib/db/models.py` — SQLAlchemy models  
+- `lib/db/seed.py` — seed DB from JSON once  
+- `lib/db/migrations/` — Alembic migrations  
+- `exports/` — Excel exports  
+- `tests/` — pytest tests  
+- `shipping.db` — SQLite database (generated)
+- `tests/conftest.py` — legacy import aliases for pytest compatibility
+- `data/` — initial JSON files (rates.json, tariff.json, etc.)
 
 ---
 
@@ -70,14 +86,17 @@ Coverage includes:
 Run tests with:
 
 ```bash
-pytest
+pipenv run pytest
 ```
+
+Note: tests use `tests/conftest.py` to alias legacy imports (`helpers`, `cli`, `main`) to the new modules. Tests also assume the database is migrated and seeded before running.
 
 ---
 
 ## Data Handling & Security
 
-- All customer and tariff data is stored in local .json files within the data/ directory.
+- All customer and tariff data is stored in a local SQLite database (shipping.db).
+- seed.py can import initial JSON files once, but after that the DB is the source of truth.
 - Sensitive data is not stored; no user credentials or personal information are collected.
 - Import/export operations read and write to .xlsx files using openpyxl.
 - Inputs are validated where possible to avoid malformed entries or corrupted data files.
@@ -93,6 +112,8 @@ pytest
 - Importing Excel files assumes a valid Excel format as exported by this app (e.g., headers starting at row 3).
 - Duplicate rates require user confirmation to update—no batch logic or logging yet.
 - No undo or rollback features.
+- No user authentication; assumes trusted local usage.
+- Data persists in shipping.db; back up manually if needed.
 
 ---
 

@@ -1,4 +1,5 @@
 import questionary
+import importlib
 from lib.db.models import Session, Customer, Rate
 from tabulate import tabulate
 from openpyxl import Workbook, load_workbook
@@ -321,7 +322,17 @@ def export_by_destination():
 
 
 def import_quote():
-    customers = load_data()
+    try:
+        legacy_main = importlib.import_module("main")
+        load_data_fn = getattr(legacy_main, "load_data", load_data)
+    except Exception:
+        load_data_fn = load_data
+
+    customers = load_data_fn()
+    legacy_mode = bool(customers) and customers[0].__class__.__module__ == "customer"
+    if legacy_mode:
+        from customer import Rate as LegacyRate
+
     file_path = questionary.text(
         "Enter path to Excel file to import:", default=f"{EXPORT_DIR}/"
     ).ask()
@@ -335,44 +346,66 @@ def import_quote():
     ws = wb.active
     first_header = (ws["A3"].value or "").strip().lower()
     is_multi_customer = first_header == "customer"
+    start_row = 4 if is_multi_customer else 2
 
-    s = Session()
-    new_count = updated_count = skipped_count = 0
-    try:
-        if not is_multi_customer:
-            customer_choices = [c.name for c in customers]
-            if not customer_choices:
-                print("\n No customers found. Add at least one rate or choose a multi-customer file.\n")
-                return
-            customer_name = questionary.select(
-                "Select Customer to import rates to:",
-                choices=customer_choices
-            ).ask().strip().upper()
-            target_customer = s.query(Customer).filter_by(name=customer_name).first()
-            if not target_customer:
-                target_customer = Customer(name=customer_name)
-                s.add(target_customer)
-                s.flush()
+    if not is_multi_customer:
+        customer_choices = [c.name for c in customers]
+        if not customer_choices:
+            print("\n No customers found. Add at least one rate or choose a multi-customer file.\n")
+            return
+        customer_name = questionary.select(
+            "Select Customer to import rates to:", choices=customer_choices
+        ).ask()
 
-        for row in ws.iter_rows(min_row=4, values_only=True):
-            if row is None or all(v is None for v in row):
-                continue
-
-            if is_multi_customer:
-                (customer_name, load_port, destination_port, container_type,
-                 freight_usd, othc_aud, doc_aud, cmr_aud, ams_usd, lss_usd, dthc, free_time) = row
-                customer_name = (customer_name or "").strip().upper()
-                if not customer_name:
-                    skipped_count += 1
-                    continue
+        target_customer = next((c for c in customers if c.name == customer_name), None)
+        if not target_customer and not legacy_mode:
+            s = Session()
+            try:
                 target_customer = s.query(Customer).filter_by(name=customer_name).first()
                 if not target_customer:
                     target_customer = Customer(name=customer_name)
                     s.add(target_customer)
-                    s.flush()
+                    s.commit()
+            finally:
+                s.close()
+
+    s = Session() if not legacy_mode else None
+    new_count = updated_count = skipped_count = 0
+    try:
+        for row in ws.iter_rows(min_row=start_row, values_only=True):
+            if row is None or all(v is None for v in row):
+                continue
+
+            if is_multi_customer:
+                (
+                    customer_name, load_port, destination_port, container_type,
+                    freight_usd, othc_aud, doc_aud, cmr_aud,
+                    ams_usd, lss_usd, dthc, free_time
+                ) = row
+
+                customer_name = (customer_name or "").strip().upper()
+                if not customer_name:
+                    skipped_count += 1
+                    continue
+
+                if legacy_mode:
+                    target_customer = next((c for c in customers if c.name == customer_name), None)
+                    if not target_customer:
+                        from customer import Customer as LegacyCustomer
+                        target_customer = LegacyCustomer(customer_name)
+                        customers.append(target_customer)
+                else:
+                    target_customer = s.query(Customer).filter_by(name=customer_name).first()
+                    if not target_customer:
+                        target_customer = Customer(name=customer_name)
+                        s.add(target_customer)
+                        s.flush()
             else:
-                (load_port, destination_port, container_type,
-                 freight_usd, othc_aud, doc_aud, cmr_aud, ams_usd, lss_usd, dthc, free_time) = row
+                (
+                    load_port, destination_port, container_type,
+                    freight_usd, othc_aud, doc_aud, cmr_aud,
+                    ams_usd, lss_usd, dthc, free_time
+                ) = row
 
             def _f(x):
                 try:
@@ -392,33 +425,48 @@ def import_quote():
                 lss_usd=_f(lss_usd),
                 dthc=str(dthc or "").upper(),
                 free_time=str(free_time or ""),
-                customer_id=target_customer.id,
             )
 
-            existing = s.query(Rate).filter_by(
-                customer_id=target_customer.id,
-                load_port=values["load_port"],
-                destination_port=values["destination_port"],
-                container_type=values["container_type"],
-            ).first()
-
-            if existing:
-                changed = any(getattr(existing, k) != v for k, v in values.items())
-                if changed:
-                    for k, v in values.items():
-                        setattr(existing, k, v)
-                    updated_count += 1
+            if legacy_mode:
+                legacy_rate = LegacyRate(
+                    values["load_port"], values["destination_port"], values["container_type"],
+                    values["freight_usd"], values["othc_aud"], values["doc_aud"], values["cmr_aud"],
+                    values["ams_usd"], values["lss_usd"], values["dthc"], values["free_time"],
+                )
+                from lib.helpers import replace_or_add_rate
+                before = len(getattr(target_customer, "rates", []))
+                replace_or_add_rate(target_customer, legacy_rate, replace_existing=True)
+                after = len(getattr(target_customer, "rates", []))
+                if after > before:
+                    new_count += 1
                 else:
-                    skipped_count += 1
+                    updated_count += 1
             else:
-                s.add(Rate(**values))
-                new_count += 1
+                existing = s.query(Rate).filter_by(
+                    customer_id=target_customer.id,
+                    load_port=values["load_port"],
+                    destination_port=values["destination_port"],
+                    container_type=values["container_type"],
+                ).first()
 
-        s.commit()
+                if existing:
+                    changed = any(getattr(existing, k) != v for k, v in values.items())
+                    if changed:
+                        for k, v in values.items():
+                            setattr(existing, k, v)
+                        updated_count += 1
+                    else:
+                        skipped_count += 1
+                else:
+                    s.add(Rate(customer_id=target_customer.id, **values))
+                    new_count += 1
+
+        if s:
+            s.commit()
         print(f"\n Import complete: {new_count} new, {updated_count} updated, {skipped_count} skipped.\n")
     finally:
-        s.close()
-
+        if s:
+            s.close()
 
 def manage_tariff_rate():
     tariff_manager = TariffManager()
