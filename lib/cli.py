@@ -494,7 +494,7 @@ def manage_tariff_rate():
             print(f"\nTariff exported to {path}\n")
 
         elif action == "Import Tariff Rates from Excel":
-            print("\n Import Tariff from Excel is not implemented yet.\n")
+            tariff_manager.import_tariff_rates()
 
         elif action == "Back to Main Menu":
             break
