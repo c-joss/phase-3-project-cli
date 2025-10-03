@@ -79,7 +79,7 @@ def add_rate():
         ).first()
 
         if existing:
-            print("\n A rate for this route and container type already exist.")
+            print("\n A rate for this route and container type already exists.")
             print("Existing:", format_rate_choice(existing, 0))
             if questionary.confirm("Do you want to update the existing rate?").ask():
                 for k in ("freight_usd","othc_aud","doc_aud","cmr_aud","ams_usd","lss_usd","dthc","free_time"):
@@ -333,8 +333,8 @@ def import_quote():
         return
 
     ws = wb.active
-    first_header = ws["A3"].value
-    is_multi_customer = (first_header or "").lower() == "customer"
+    first_header = (ws["A3"].value or "").strip().lower()
+    is_multi_customer = first_header == "customer"
 
     s = Session()
     new_count = updated_count = skipped_count = 0
@@ -437,21 +437,7 @@ def manage_tariff_rate():
         ).ask()
 
         if action == "View Tariff Rates":
-            tariff_manager.view_tariffs()
-            if not tariff_manager.items:
-                print("\n No Tariff rates found.")
-            else:
-                headers = [
-                    "POL","POD","Container","Freight USD","OTHC AUD","DOC AUD",
-                    "CMR AUD","AMS USD","LSS USD","DTHC","Free Time"
-                ]
-                rows = [[
-                    t.load_port, t.destination_port, t.container_type,
-                    t.freight_usd, t.othc_aud, t.doc_aud, t.cmr_aud,
-                    t.ams_usd, t.lss_usd, t.dthc, t.free_time
-                ] for t in tariff_manager.items]
-                print(tabulate(rows, headers=headers, tablefmt="grid"))
-
+            tariff_manager.view_tariffs()            
         elif action == "Add Tariff Rate":
             load_ports, dest_ports, containers, dthc_values = get_valid_ports()
             values = rate_values_prompt(load_ports, dest_ports, containers, dthc_values)
