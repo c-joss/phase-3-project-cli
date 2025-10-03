@@ -437,7 +437,20 @@ def manage_tariff_rate():
         ).ask()
 
         if action == "View Tariff Rates":
-            tariff_manager.view_tariffs()            
+            tariff_manager.load_tariffs()
+            if not tariff_manager.items:
+                print("\n No Tariff rates found.")
+            else:
+                headers = [
+                    "POL","POD","Container","Freight USD","OTHC AUD","DOC AUD",
+                    "CMR AUD","AMS USD","LSS USD","DTHC","Free Time"
+                ]
+                rows = [[
+                    t.load_port, t.destination_port, t.container_type,
+                    t.freight_usd, t.othc_aud, t.doc_aud, t.cmr_aud,
+                    t.ams_usd, t.lss_usd, t.dthc, t.free_time
+                ] for t in tariff_manager.items]
+                print(tabulate(rows, headers=headers, tablefmt="grid"))            
         elif action == "Add Tariff Rate":
             load_ports, dest_ports, containers, dthc_values = get_valid_ports()
             values = rate_values_prompt(load_ports, dest_ports, containers, dthc_values)

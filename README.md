@@ -41,7 +41,7 @@ This is a terminal based Rate Manager application for managing customer rates an
 4. Start the app:
 
     ```bash
-    python3 main.py
+    python3 cli.py
     ```
 
 ---
